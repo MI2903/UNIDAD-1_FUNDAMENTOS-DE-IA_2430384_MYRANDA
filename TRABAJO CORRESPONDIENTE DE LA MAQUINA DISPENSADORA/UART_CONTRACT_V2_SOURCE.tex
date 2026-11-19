@@ -1,0 +1,1004 @@
+% ============================================================================
+% SAID - CONTRATO DE COMUNICACION UART v2.0.0 (FINAL)
+% ============================================================================
+% Especificación técnica final y cerrada del protocolo de comunicación lógico
+% entre el microcontrolador ESP32 y el microcontrolador Arduino Mega para la
+% máquina expendedora SAID.
+% ============================================================================
+
+\documentclass[a4paper,11pt]{article}
+
+% ============================================================================
+% METADATA DEL DOCUMENTO
+% ============================================================================
+% Modificar estos comandos actualiza de forma global encabezados, pies de página,
+% portada y referencias del documento sin repetir cadenas manualmente.
+
+\newcommand{\DocumentTitle}{Contrato UART SAID}
+\newcommand{\DocumentSubtitle}{Especificación lógica de comunicación ESP32--Arduino Mega}
+\newcommand{\DocumentType}{Especificación de interfaz}
+\newcommand{\DocumentId}{SAID-ARCH-UART}
+\newcommand{\DocumentVersion}{2.0.0}
+\newcommand{\DocumentStatus}{FINAL}
+\newcommand{\DocumentDate}{12 de septiembre de 2026}
+\newcommand{\DocumentOwner}{Subgrupo de Arquitectura}
+\newcommand{\DocumentAuthors}{César Euresti, Diego Eduardo Zapata Aguilar, Dulce Yaretzi Martinez Perez, Myranda Belen Infante Castillo}
+\newcommand{\DocumentConsumers}{Programación ESP32 / Programación Arduino Mega}
+
+% ============================================================================
+% PAQUETES Y CONFIGURACION DE IDIOMA
+% ============================================================================
+% Se cargan los paquetes estándar necesarios para tipografía técnica, tablas,
+% bloques de código, gráficos TikZ y gestión de enlaces PDF.
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-nodecimaldot]{babel}
+\usepackage{geometry}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{xltabular}
+\usepackage[table]{xcolor}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{listings}
+\usepackage{amssymb}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,shapes.misc,calc}
+
+% ============================================================================
+% DISENO VISUAL Y TIPOGRAFIA
+% ============================================================================
+% Márgenes amplios y proporcionados para lectura técnica en laboratorio.
+
+\geometry{
+    left=2cm,
+    right=2cm,
+    top=3.4cm,
+    bottom=2.4cm,
+    headheight=58pt,
+    headsep=16pt,
+    footskip=28pt
+}
+
+% Tipografía sans-serif técnica limpia y formal.
+\renewcommand{\familydefault}{\sfdefault}
+
+% Paleta institucional de colores sobrios para líneas, tablas y diagramas.
+\definecolor{SAIDBlue}{RGB}{35,76,99}
+\definecolor{SAIDLight}{RGB}{235,240,243}
+\definecolor{SAIDGray}{RGB}{100,100,100}
+\definecolor{CodeGray}{RGB}{245,245,245}
+\definecolor{SAIDRed}{RGB}{178,34,34}
+\definecolor{SAIDGreen}{RGB}{34,139,34}
+
+% Enlaces PDF con color institucional SAIDBlue.
+\hypersetup{
+    colorlinks=true,
+    linkcolor=SAIDBlue,
+    urlcolor=SAIDBlue,
+    citecolor=SAIDBlue,
+    pdftitle={\DocumentTitle\ v\DocumentVersion},
+    pdfauthor={\DocumentAuthors},
+    pdfsubject={\DocumentSubtitle}
+}
+\urlstyle{same}
+
+% Formato para fragmentos de código y tramas hexadecimales.
+\lstset{
+    basicstyle=\ttfamily\small,
+    backgroundcolor=\color{CodeGray},
+    frame=single,
+    columns=fullflexible,
+    keepspaces=true,
+    showstringspaces=false,
+    breaklines=true
+}
+
+% Estilos TikZ para diagramas de secuencia claros y consistentes.
+\tikzset{
+    seqactor/.style={draw=SAIDBlue, fill=SAIDLight, thick, rounded corners=2pt, minimum width=2.8cm, minimum height=0.6cm, font=\bfseries\small},
+    seqmsg/.style={-Latex, thick, SAIDBlue, font=\footnotesize},
+    seqmsgback/.style={-Latex, thick, SAIDBlue!85!black, font=\footnotesize},
+    seqmsglost/.style={-Latex, thick, dashed, SAIDRed, font=\footnotesize},
+    seqnote/.style={draw=gray!50, fill=white, thin, font=\scriptsize, align=center, inner sep=2.5pt}
+}
+
+% ============================================================================
+% COMANDOS / ARTEFACTOS REUTILIZABLES
+% ============================================================================
+% Comandos normativos reutilizables para garantizar consistencia visual.
+
+% Cabecera de celda para tablas técnicas.
+\newcommand{\tablehead}[1]{\cellcolor{SAIDBlue}\color{white}\textbf{#1}}
+
+% Recuadro normativo de requisito verificable obligatorio.
+\newcommand{\requirement}[2]{%
+    \par\smallskip
+    \noindent\begin{tabularx}{\textwidth}{|>{\bfseries}p{3.2cm}|X|}
+        \hline
+        \cellcolor{SAIDLight}#1 & #2 \\
+        \hline
+    \end{tabularx}
+    \par\smallskip
+}
+
+% ============================================================================
+% HEADER Y FOOTER
+% ============================================================================
+% Encabezado y pie de página enlazados directamente a la metadata global.
+
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+\fancyhead[C]{%
+    \begin{tabularx}{\textwidth}{|X|p{2.5cm}|p{2.1cm}|p{2.2cm}|}
+        \hline
+        \multicolumn{4}{|c|}{\textbf{\DocumentTitle}} \\
+        \hline
+        \footnotesize \DocumentId &
+        \footnotesize Ver. \DocumentVersion &
+        \footnotesize \DocumentStatus &
+        \footnotesize Pág. \thepage/\pageref*{LastPage} \\
+        \hline
+    \end{tabularx}%
+}
+
+\fancyfoot[L]{\footnotesize \DocumentOwner}
+\fancyfoot[R]{\footnotesize \DocumentDate}
+
+% ============================================================================
+% CONTENIDO DEL DOCUMENTO
+% ============================================================================
+
+\begin{document}
+
+% ----------------------------------------------------------------------------
+% PORTADA / FICHA DE CONTROL
+% ----------------------------------------------------------------------------
+% Ficha formal sobria de identificación técnica del protocolo.
+
+\begin{center}
+    {\LARGE\bfseries \DocumentTitle\\[0.3cm]}
+    {\large \DocumentSubtitle}
+\end{center}
+
+\vspace{0.6cm}
+
+\noindent\begin{tabularx}{\textwidth}{|>{\bfseries}p{4.2cm}|X|}
+    \hline
+    Identificador & \DocumentId \\
+    \hline
+    Tipo de documento & \DocumentType \\
+    \hline
+    Versión & \DocumentVersion \\
+    \hline
+    Estado & \DocumentStatus \\
+    \hline
+    Fecha & \DocumentDate \\
+    \hline
+    Propietario & \DocumentOwner \\
+    \hline
+    Autor(es) & \DocumentAuthors \\
+    \hline
+    Consumidores / destinatarios & \DocumentConsumers \\
+    \hline
+\end{tabularx}
+
+\vspace{0.8cm}
+
+\noindent\textbf{Nota de aplicación técnica.}
+Este documento define el formato y la semántica del enlace UART utilizado entre
+el microcontrolador ESP32 y el microcontrolador Arduino Mega en el sistema SAID.
+La presente especificación en estado \DocumentStatus\ establece los lineamientos
+definitivos y cerrados para la implementación de firmware en ambos subsistemas.
+
+\newpage
+
+% ============================================================================
+% INDICE DE CONTENIDOS
+% ============================================================================
+
+\setcounter{tocdepth}{2}
+\begingroup
+\makeatletter
+\renewcommand*\l@section[2]{%
+  \ifnum \c@tocdepth >\z@
+    \addpenalty\@secpenalty
+    \vskip 0.4em \@plus\p@
+    \setlength\@tempdima{2.0em}%
+    \begingroup
+      \parindent \z@ \rightskip \@pnumwidth
+      \parfillskip -\@pnumwidth
+      {\leavevmode
+       \bfseries #1\nobreak\hfil \nobreak\hb@xt@\@pnumwidth{\hss #2}}\par
+    \endgroup
+  \fi}
+\renewcommand*\l@subsection{\@dottedtocline{2}{2.0em}{2.5em}}
+\makeatother
+\tableofcontents
+\endgroup
+\newpage
+
+% ============================================================================
+% SECCION 1 - PROPOSITO, ALCANCE Y ARQUITECTURA DEL SISTEMA
+% ============================================================================
+
+\section{Propósito, alcance y arquitectura del sistema}
+
+Este documento establece la especificación técnica del contrato lógico de
+comunicación serie asíncrona (UART) entre el ESP32 y el Arduino Mega dentro de la
+máquina expendedora SAID. Su meta principal es posibilitar la interoperabilidad
+directa, confiable y determinista entre el firmware de control de negocio y el
+firmware de control físico de periféricos.
+
+\subsection{Distribución de responsabilidades por subsistema}
+
+\noindent\begin{tabularx}{\textwidth}{|p{3.5cm}|X|}
+    \hline
+    \tablehead{Equipo / Rol} & \tablehead{Responsabilidad técnica en el sistema} \\
+    \hline
+    Arquitectura & Especifica la estructura de tramas, el catálogo de comandos, las enumeraciones, el orden de bytes y las reglas de idempotencia. \\
+    \hline
+    Programación ESP32 & Implementa el controlador maestro del protocolo UART, gestiona la máquina de estados de negocio (FSM), consulta y persiste transacciones en SQLite, controla el lector RFID y autoriza las órdenes de venta. \\
+    \hline
+    Programación Arduino Mega & Implementa el controlador periférico UART, atiende comandos de motor, refresca la pantalla LCD y notifica eventos físicos de teclado matricial y sensores de seguridad. \\
+    \hline
+    Electrónica & Provee el canal físico serie confiable, selección de líneas TX/RX, niveles de tensión adaptados (3.3~V en ESP32 / 5.0~V en Arduino Mega), plano de masa común y apantallamiento contra ruido de motores. \\
+    \hline
+\end{tabularx}
+
+\subsection{Arquitectura Web y desacoplamiento de base de datos}
+
+El sistema SAID contempla una interfaz web para tareas de supervisión, recarga
+de saldo y mantenimiento administrativo. La relación entre dicha interfaz y el
+enlace UART se rige bajo los siguientes principios de arquitectura:
+
+\begin{itemize}[leftmargin=1.6em]
+    \item \textbf{Interacción exclusiva vía HTTP con ESP32:} La aplicación web
+    se comunica únicamente con el servidor HTTP / API REST que se ejecuta dentro del
+    ESP32. En ningún caso la aplicación web interactúa de forma directa con el
+    Arduino Mega ni envía tramas UART directas al bus físico.
+    \item \textbf{Privacidad de la base de datos SQLite:} La base de datos SQLite
+    reside exclusivamente en la memoria de almacenamiento del ESP32. La aplicación web
+    accede a los datos mediante endpoints HTTP expuestos por el ESP32, y el Arduino Mega
+    no tiene conocimiento alguno de la existencia de tablas relacionales o esquemas de base de datos.
+    \item \textbf{Agnosticismo del Arduino Mega ante el origen del comando:}
+    El Arduino Mega no distingue si una solicitud de operación (como una prueba de canal
+    o una consulta de sensores) fue originada físicamente desde el teclado matricial
+    o remotamente desde el panel web. Para el Arduino Mega, toda instrucción es una
+    trama UART emitida, validada y autorizada por el ESP32.
+\end{itemize}
+
+\subsection{Límites del contrato (Fuera de alcance)}
+
+Los parámetros de la capa física (velocidad en baudios, asignación de pines GPIO,
+convertidores de nivel lógico 3.3~V $\leftrightarrow$ 5.0~V y cables) se definen
+en la documentación de Electrónica y no forman parte de este contrato lógico.
+
+
+\clearpage
+% ============================================================================
+% SECCION 2 - CONVENCIONES DE DATOS
+% ============================================================================
+
+\section{Convenciones de datos}
+
+\subsection{Tipos de datos permitidos}
+
+Para prevenir inconsistencias de tamaño entre la arquitectura de 32 bits del
+ESP32 y la arquitectura de 8 bits (AVR) del Arduino Mega, todos los campos de
+las tramas utilizan exclusivamente tipos binarios de longitud fija de la
+biblioteca estándar \texttt{<stdint.h>}.
+
+\noindent\begin{tabularx}{\textwidth}{|p{2.8cm}|p{2.2cm}|X|}
+    \hline
+    \tablehead{Tipo} & \tablehead{Tamaño} & \tablehead{Uso normativo en el protocolo} \\
+    \hline
+    \texttt{uint8\_t} & 1 byte (8 bits) & Comandos (\texttt{CMD}), secuencias (\texttt{SEQ}), longitudes (\texttt{LEN}), canales, modos y enumeraciones. \\
+    \hline
+    \texttt{uint32\_t} & 4 bytes (32 bits) & Identificadores de transacción monotónicos (\texttt{transaction\_id}). \\
+    \hline
+    ASCII fijo & Longitud fija & Cadenas de caracteres para display LCD sin byte terminador nulo. \\
+    \hline
+\end{tabularx}
+
+\requirement{UART-REQ-001}{Queda estrictamente prohibido el uso de tipos de datos de ancho indefinido como \texttt{int}, \texttt{short} o \texttt{long} en las estructuras de datos de la interfaz UART.}
+
+\subsection{Orden de bytes (Endianness)}
+
+Todos los campos numéricos enteros de ancho mayor a un byte (\texttt{uint32\_t})
+se transmiten en formato \textbf{little-endian} (el byte de menor peso o \textit{Least
+Significant Byte} se envía en primer lugar por la línea serie). Por ejemplo, el
+identificador de transacción \texttt{0x0000002A} (decimal 42) se transmite como la
+secuencia de cuatro bytes: \texttt{0x2A} \texttt{0x00} \texttt{0x00} \texttt{0x00}.
+
+\subsection{Representación de texto}
+
+Los campos de texto utilizados para actualizar la pantalla alfanumérica LCD (\texttt{DISPLAY})
+cumplen las siguientes reglas:
+\begin{itemize}[leftmargin=1.6em,itemsep=1pt,parsep=0pt,topsep=2pt]
+    \item Codificación estándar en ASCII imprimible de 7 bits (\texttt{0x20} a \texttt{0x7E}).
+    \item Cada línea de la pantalla tiene una longitud exacta de 16 caracteres.
+    \item No se utiliza carácter terminador nulo (\lstinline|'\0'|).
+    \item Cadenas con menos de 16 caracteres se rellenan a la derecha con espacios ASCII (\texttt{0x20}).
+    \item Caracteres especiales o acentuados fuera del rango ASCII imprimible deben sustituirse por el carácter \texttt{'?'} (\texttt{0x3F}).
+\end{itemize}
+
+\subsection{Identificador de transacción (\texttt{transaction\_id})}
+
+El identificador \texttt{transaction\_id} de 32 bits vincula unívocamente las órdenes
+de dispensado físico con su registro contable:
+\begin{itemize}[leftmargin=1.6em,itemsep=1pt,parsep=0pt,topsep=2pt]
+    \item \textbf{Generador único:} El ESP32 es el único dispositivo facultado para generar nuevos \texttt{transaction\_id}.
+    \item \textbf{Rango operativo:} Valores válidos comprendidos entre \texttt{0x00000001} y \texttt{0xFFFFFFFE}.
+    \item \textbf{Valores centinela:} \texttt{0x00000000} (inválida o nula) y \texttt{0xFFFFFFFF} (sin transacción en curso).
+\end{itemize}
+
+\subsection{Número de secuencia (\texttt{SEQ})}
+
+Cada trama transmitida incluye un campo \texttt{SEQ} de 8 bits (\texttt{uint8\_t}):
+\begin{itemize}[leftmargin=1.6em,itemsep=1pt,parsep=0pt,topsep=2pt]
+    \item Se incrementa progresivamente módulo 256 (\texttt{0} $\rightarrow$ \texttt{1} $\rightarrow$ \dots $\rightarrow$ \texttt{255} $\rightarrow$ \texttt{0}) con cada nuevo mensaje generado.
+    \item Las respuestas directas e inmediatas (\texttt{ACK}, respuesta de \texttt{STATUS}, eco de \texttt{HEARTBEAT} y respuesta de \texttt{HELLO}) replican con exactitud el valor de \texttt{SEQ} del mensaje entrante que las provocó.
+\end{itemize}
+
+\clearpage
+
+
+% ============================================================================
+% SECCION 3 - FORMATO GENERAL DEL FRAME
+% ============================================================================
+
+\section{Formato general del frame}
+
+Todas las tramas transmitidas entre el ESP32 y el Arduino Mega comparten una
+estructura binaria regular y uniforme delimitada por un preámbulo fijo de dos bytes
+y un campo de longitud explícito.
+
+\subsection{Estructura binaria de la trama}
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|}
+    \hline
+    \textbf{SOF1} & \textbf{SOF2} & \textbf{PROTO} & \textbf{CMD} & \textbf{SEQ} & \textbf{LEN} & \textbf{PAYLOAD} \\
+    \hline
+    1 byte & 1 byte & 1 byte & 1 byte & 1 byte & 1 byte & 0 a 32 bytes \\
+    \hline
+\end{tabular}
+\end{center}
+
+\subsection{Campos del frame}
+
+\noindent\begin{xltabular}{\textwidth}{|p{1.8cm}|p{1.5cm}|p{2.0cm}|X|}
+    \hline
+    \tablehead{Campo} & \tablehead{Offset} & \tablehead{Tamaño} & \tablehead{Descripción y reglas} \\
+    \hline \endhead
+
+    \texttt{SOF1} & 0 & 1 byte & Primer byte de sincronización. Constante fija \texttt{0xA5}. \\
+    \hline
+    \texttt{SOF2} & 1 & 1 byte & Segundo byte de sincronización. Constante fija \texttt{0x5A}. \\
+    \hline
+    \texttt{PROTO} & 2 & 1 byte & Versión mayor del protocolo a nivel de trama. Constante \texttt{0x02}. \\
+    \hline
+    \texttt{CMD} & 3 & 1 byte & Identificador del comando según el catálogo oficial. \\
+    \hline
+    \texttt{SEQ} & 4 & 1 byte & Número de secuencia del mensaje ($0 \le \texttt{SEQ} \le 255$). \\
+    \hline
+    \texttt{LEN} & 5 & 1 byte & Longitud en bytes del campo \texttt{PAYLOAD} ($0 \le \texttt{LEN} \le 32$). \\
+    \hline
+    \texttt{PAYLOAD} & 6 & 0..32 bytes & Datos asociados al comando. Si $\texttt{LEN} = 0$, este campo no existe. \\
+    \hline
+\end{xltabular}
+
+\subsection{Reglas de validación y delimitación}
+
+\begin{itemize}[leftmargin=1.6em]
+    \item \textbf{Límites dimensionales:} La trama mínima sin carga útil ocupa exactamente 6 bytes ($\texttt{LEN} = 0$). La trama de máxima longitud ocupa 38 bytes ($\texttt{LEN} = 32$).
+    \item \textbf{Rechazo por desbordamiento de longitud:} Si el receptor procesa un byte \texttt{LEN} estrictamente mayor a 32 ($\texttt{LEN} > 32$), la trama se descarta inmediatamente por considerarse corrupta o desfasada.
+    \item \textbf{Ausencia de checksum / CRC:} Esta versión 2.0.0 del contrato no utiliza código de redundancia cíclica (CRC) ni checksum adicional; la delimitación y validación se basan exclusivamente en el preámbulo fijo de dos bytes, el control de versión de protocolo y el campo de longitud explícito.
+    \item \textbf{Resincronización del parser:} Ante la recepción de bytes corruptos, discrepancia en \texttt{PROTO} ($\neq \texttt{0x02}$) o valor inválido de \texttt{LEN}, el receptor limpia su buffer temporal de recepción y reanuda la búsqueda de la secuencia de sincronización \texttt{0xA5 0x5A}.
+\end{itemize}
+
+
+% ============================================================================
+% SECCION 4 - DICCIONARIO DEFINITIVO DE COMANDOS
+% ============================================================================
+
+\clearpage
+\section{Diccionario definitivo de comandos}
+
+El protocolo SAID v2.0.0 define un conjunto cerrado de 9 comandos que cubren la
+totalidad de los intercambios requeridos para el control de la máquina expendedora:
+
+\noindent\begin{xltabular}{\textwidth}{|p{1.4cm}|p{2.5cm}|p{3.2cm}|X|}
+    \hline
+    \tablehead{CMD} & \tablehead{Nombre} & \tablehead{Dirección} & \tablehead{Semántica operativa} \\
+    \hline \endhead
+
+    \texttt{0x01} & \texttt{HELLO} & Ambas direcciones & Sincronización inicial de arranque y verificación de versión de protocolo. \\
+    \hline
+    \texttt{0x02} & \texttt{ACK} & Ambas direcciones & Confirmación inmediata de recepción válida o notificación de rechazo con motivo. \\
+    \hline
+    \texttt{0x03} & \texttt{STATUS} & Ambas direcciones & Solicitud (ESP32 $\rightarrow$ Mega) y reporte (Mega $\rightarrow$ ESP32) de sensores y modo. \\
+    \hline
+    \texttt{0x04} & \texttt{SET\_MODE} & ESP32 $\rightarrow$ Mega & Configuración del modo operativo autorizado en Arduino Mega (Venta o Mantenimiento). \\
+    \hline
+    \texttt{0x05} & \texttt{HEARTBEAT} & ESP32 $\rightarrow$ Mega $\rightarrow$ ESP32 & Diagnóstico puntual del canal serie mediante patrón simple de ping/eco. \\
+    \hline
+    \texttt{0x10} & \texttt{KEY} & Mega $\rightarrow$ ESP32 & Notificación de evento de tecla presionada tras filtrado debounce en hardware local. \\
+    \hline
+    \texttt{0x11} & \texttt{DISPLAY} & ESP32 $\rightarrow$ Mega & Actualización del contenido textual completo (2 líneas de 16 caracteres) en el display LCD. \\
+    \hline
+    \texttt{0x12} & \texttt{VEND} & ESP32 $\rightarrow$ Mega & Orden de dispensado físico autorizada para un canal mecánico determinado. \\
+    \hline
+    \texttt{0x13} & \texttt{RESULT} & Mega $\rightarrow$ ESP32 & Notificación asíncrona del resultado físico del dispensado ejecutado en Mega. \\
+    \hline
+\end{xltabular}
+
+\vspace{0.4cm}
+\noindent\textbf{Cláusula de extensión futura:}
+Los códigos de comando no listados en la tabla anterior quedan reservados para futuras
+versiones del protocolo.
+
+% ============================================================================
+% SECCION 5 - ENUMERACIONES COMPARTIDAS
+% ============================================================================
+
+\section{Enumeraciones compartidas}
+
+\subsection{Resultado de confirmación (\texttt{resultado} en comando ACK)}
+
+\noindent\begin{tabularx}{\textwidth}{|p{1.8cm}|p{3.5cm}|X|}
+    \hline
+    \tablehead{Valor} & \tablehead{Constante} & \tablehead{Definición} \\
+    \hline
+    \texttt{0x00} & \texttt{ACK\_RECEIVED} & Trama recibida íntegra, sintácticamente válida y aceptada para ejecución. \\
+    \hline
+    \texttt{0x01} & \texttt{ACK\_REJECTED} & Trama rechazada por incoherencia sintáctica, estado inválido o conflicto local. \\
+    \hline
+\end{tabularx}
+
+\requirement{UART-REQ-002}{\texttt{ACK\_RECEIVED} certifica la recepción y aceptación lógica del mensaje en el receptor; no constituye una confirmación de que la acción física mecánica haya concluido.}
+
+\subsection{Motivos de rechazo (\texttt{motivo} en comando ACK)}
+
+\noindent\begin{xltabular}{\textwidth}{|p{1.8cm}|p{4.8cm}|X|}
+    \hline
+    \tablehead{Valor} & \tablehead{Constante} & \tablehead{Causa reportada} \\
+    \hline \endhead
+
+    \texttt{0x00} & \texttt{NONE} & Sin error. Empleado cuando \texttt{resultado} es \texttt{ACK\_RECEIVED}. \\
+    \hline
+    \texttt{0x01} & \texttt{INVALID\_CMD} & El comando recibido no existe en el catálogo oficial. \\
+    \hline
+    \texttt{0x02} & \texttt{INVALID\_LENGTH} & El campo \texttt{LEN} recibido no coincide con el tamaño esperado para el comando. \\
+    \hline
+    \texttt{0x03} & \texttt{INVALID\_PAYLOAD} & La carga útil contiene parámetros fuera de rango válido. \\
+    \hline
+    \texttt{0x04} & \texttt{INVALID\_STATE} & El comando no está permitido en el estado actual de operación. \\
+    \hline
+    \texttt{0x05} & \texttt{BUSY} & El subsistema se encuentra ocupado ejecutando una operación previa. \\
+    \hline
+    \texttt{0x06} & \texttt{INVALID\_CHANNEL} & El canal de motor solicitado no pertenece al rango admitido (1 a 4). \\
+    \hline
+    \texttt{0x07} & \texttt{VERSION\_MISMATCH} & Discrepancia incompatible en versión de protocolo negociada en \texttt{HELLO}. \\
+    \hline
+    \texttt{0x08} & \texttt{DUPLICATE\_CONFLICT} & Se recibió una solicitud con idéntico identificador pero parámetros contradictorios. \\
+    \hline
+    \texttt{0x09} & \texttt{UNSAFE\_PHYSICAL\_STATE} & Condición física que impide operar con seguridad (p. ej., puerta abierta). \\
+    \hline
+    \texttt{0x0A} & \texttt{INTERNAL\_ERROR} & Falla interna de hardware o periférico en el nodo receptor. \\
+    \hline
+    \texttt{0x0B} & \texttt{UNKNOWN\_TRANSACTION} & Transacción referenciada no reconocida en el nodo. \\
+    \hline
+\end{xltabular}
+
+\subsection{Resultado físico de dispensado (\texttt{result} en comando RESULT)}
+
+\noindent\begin{tabularx}{\textwidth}{|p{1.8cm}|p{5.0cm}|X|}
+    \hline
+    \tablehead{Valor} & \tablehead{Constante} & \tablehead{Definición física observable} \\
+    \hline
+    \texttt{0x00} & \texttt{DELIVERED} & El motor completó el ciclo y el sensor de caída detectó la entrega del producto. \\
+    \hline
+    \texttt{0x01} & \texttt{REJECTED\_BEFORE\_MOTION} & La orden fue rechazada antes de activar actuadores o motores mecánicos. \\
+    \hline
+    \texttt{0x02} & \texttt{UNCERTAIN} & El resultado físico no pudo determinarse de forma confiable (p. ej., bloqueo mecánico o falla de sensor). \\
+    \hline
+\end{tabularx}
+
+\subsection{Identificador de rol (\texttt{role} en comando HELLO)}
+
+\noindent\begin{tabularx}{\textwidth}{|p{1.8cm}|p{3.2cm}|X|}
+    \hline
+    \tablehead{Valor} & \tablehead{Constante} & \tablehead{Rol asignado en el sistema} \\
+    \hline
+    \texttt{0x00} & \texttt{ROLE\_ESP32} & Nodo maestro (controlador de lógica de negocio, SQLite y RFID). \\
+    \hline
+    \texttt{0x01} & \texttt{ROLE\_MEGA} & Nodo periférico (controlador de teclado, display LCD, motores y sensores). \\
+    \hline
+\end{tabularx}
+
+\subsection{Modo de operación del sistema (\texttt{mode})}
+
+\noindent\begin{tabularx}{\textwidth}{|p{1.8cm}|p{4.5cm}|X|}
+    \hline
+    \tablehead{Valor} & \tablehead{Constante} & \tablehead{Comportamiento operativo} \\
+    \hline
+    \texttt{0x00} & \texttt{MODE\_VENTA} & Modo regular de atención al público: teclado habilitado y órdenes \texttt{VEND} admitidas. \\
+    \hline
+    \texttt{0x01} & \texttt{MODE\_MANTENIMIENTO} & Modo técnico de servicio y diagnóstico: venta al público deshabilitada. \\
+    \hline
+\end{tabularx}
+
+\requirement{UART-REQ-003}{Al energizarse o experimentar un reinicio, el Arduino Mega inicia de forma obligatoria en \texttt{MODE\_MANTENIMIENTO} como medida de seguridad física, permaneciendo en dicho modo hasta que el ESP32 emita explícitamente el comando \texttt{SET\_MODE(MODE\_VENTA)}.}
+
+\subsection{Estados de sensores físicos}
+
+Valores discretos reportados por el Arduino Mega en la respuesta del comando \texttt{STATUS}:
+\begin{itemize}[leftmargin=1.6em]
+    \item \textbf{Sensor de puerta (\texttt{door}):} \texttt{0x00} = \texttt{CLOSED} (puerta cerrada y segura), \texttt{0x01} = \texttt{OPEN} (puerta abierta), \texttt{0xFF} = \texttt{UNKNOWN}.
+    \item \textbf{Barrera óptica de caída (\texttt{barrier}):} \texttt{0x00} = \texttt{FREE} (haz despejado), \texttt{0x01} = \texttt{OCCUPIED} (haz obstruido), \texttt{0xFF} = \texttt{UNKNOWN}.
+\end{itemize}
+
+
+% ============================================================================
+% SECCION 6 - ESPECIFICACION DETALLADA DE MENSAJES
+% ============================================================================
+
+\section{Especificación de mensajes}
+
+\subsection{\texttt{HELLO} -- Inicialización y sincronización de versión (\texttt{0x01})}
+
+\noindent
+\textbf{Dirección:} Ambas direcciones (ESP32 $\leftrightarrow$ Arduino Mega).\\
+\textbf{Longitud de payload:} Exactamente 3 bytes ($\texttt{LEN} = 3$).\\
+\textbf{Propósito:} Handshake de inicio para comprobar compatibilidad mutua de versión y roles.
+
+\noindent\begin{xltabular}{\textwidth}{|p{1.1cm}|p{1.6cm}|p{1.7cm}|p{4.2cm}|X|}
+    \hline
+    \tablehead{Offset} & \tablehead{Tamaño} & \tablehead{Tipo} & \tablehead{Campo} & \tablehead{Descripción} \\
+    \hline \endhead
+
+    0 & 1 byte & \texttt{uint8\_t} & \texttt{version\_major} & Versión mayor del protocolo. Valor constante \texttt{2}. \\
+    \hline
+    1 & 1 byte & \texttt{uint8\_t} & \texttt{version\_minor} & Versión menor del protocolo. Valor constante \texttt{0}. \\
+    \hline
+    2 & 1 byte & \texttt{uint8\_t} & \texttt{role} & Identificador del nodo emisor (\texttt{0x00} ESP32, \texttt{0x01} Mega). \\
+    \hline
+\end{xltabular}
+
+\requirement{UART-REQ-004}{Todo mensaje \texttt{HELLO} recibido debe responderse de inmediato con otro mensaje \texttt{HELLO} emitido por el receptor, conservando exactamente el mismo número de secuencia \texttt{SEQ}.}
+
+\subsection{\texttt{ACK} -- Confirmación inmediata (\texttt{0x02})}
+
+\noindent
+\textbf{Dirección:} Ambas direcciones (ESP32 $\leftrightarrow$ Arduino Mega).\\
+\textbf{Longitud de payload:} Exactamente 3 bytes ($\texttt{LEN} = 3$).\\
+\textbf{Propósito:} Acusar recibo inmediato de una solicitud entrante indicando si fue aceptada o rechazada.
+
+\noindent\begin{xltabular}{\textwidth}{|p{1.1cm}|p{1.6cm}|p{1.7cm}|p{4.2cm}|X|}
+    \hline
+    \tablehead{Offset} & \tablehead{Tamaño} & \tablehead{Tipo} & \tablehead{Campo} & \tablehead{Descripción} \\
+    \hline \endhead
+
+    0 & 1 byte & \texttt{uint8\_t} & \texttt{cmd\_referenciado} & Identificador del comando al cual responde. \\
+    \hline
+    1 & 1 byte & \texttt{uint8\_t} & \texttt{resultado} & \texttt{0x00} (\texttt{ACK\_RECEIVED}) o \texttt{0x01} (\texttt{ACK\_REJECTED}). \\
+    \hline
+    2 & 1 byte & \texttt{uint8\_t} & \texttt{motivo} & Motivo normativo de rechazo (\texttt{0x00} si fue aceptado). \\
+    \hline
+\end{xltabular}
+
+\requirement{UART-REQ-005}{Una trama de confirmación \texttt{ACK} nunca genera otro \texttt{ACK} en respuesta, evitando la formación de bucles infinitos en el canal serie.}
+
+\subsection{\texttt{STATUS} -- Consulta y reporte de estado (\texttt{0x03})}
+
+\noindent
+\textbf{Dirección:} Solicitud: ESP32 $\rightarrow$ Mega; Respuesta: Mega $\rightarrow$ ESP32.\\
+\textbf{Propósito:} Intercambiar el estado de sensores físicos y el modo activo del Arduino Mega.
+\begin{itemize}[leftmargin=1.6em]
+    \item \textbf{Solicitud de estado:} Trama emitida por ESP32 con payload vacío ($\texttt{LEN} = 0$).
+    \item \textbf{Respuesta de estado:} Trama emitida por Mega con payload de 7 bytes ($\texttt{LEN} = 7$) y el mismo \texttt{SEQ} de la solicitud.
+\end{itemize}
+
+\paragraph{Payload de la respuesta \texttt{STATUS} (7 bytes):}
+
+\noindent\begin{xltabular}{\textwidth}{|p{1.1cm}|p{1.6cm}|p{1.7cm}|p{4.5cm}|X|}
+    \hline
+    \tablehead{Offset} & \tablehead{Tamaño} & \tablehead{Tipo} & \tablehead{Campo} & \tablehead{Descripción} \\
+    \hline \endhead
+
+    0 & 1 byte & \texttt{uint8\_t} & \texttt{door} & Estado del sensor de puerta (\texttt{0x00} cerrada, \texttt{0x01} abierta). \\
+    \hline
+    1 & 1 byte & \texttt{uint8\_t} & \texttt{barrier} & Estado de la barrera óptica (\texttt{0x00} libre, \texttt{0x01} ocupada). \\
+    \hline
+    2 & 1 byte & \texttt{uint8\_t} & \texttt{mode} & Modo operativo actual en Mega (\texttt{0x00} Venta, \texttt{0x01} Mantenimiento). \\
+    \hline
+    3 & 4 bytes & \texttt{uint32\_t} & \texttt{current\_transaction\_id} & Transacción en ejecución (\texttt{0xFFFFFFFF} si inactivo). \\
+    \hline
+\end{xltabular}
+
+\requirement{UART-REQ-006}{El comando \texttt{STATUS} no requiere tramas \texttt{ACK}. La propia trama de respuesta \texttt{STATUS} ($\texttt{LEN} = 7$) sirve como confirmación de la consulta.}
+
+\subsection{\texttt{SET\_MODE} -- Configuración de modo operativo (\texttt{0x04})}
+
+\noindent
+\textbf{Dirección:} ESP32 $\rightarrow$ Arduino Mega.\\
+\textbf{Longitud de payload:} Exactamente 1 byte ($\texttt{LEN} = 1$).\\
+\textbf{Propósito:} Comandar a Arduino Mega la transición entre modo de venta y modo de mantenimiento.
+
+\noindent\begin{xltabular}{\textwidth}{|p{1.1cm}|p{1.6cm}|p{1.7cm}|p{4.2cm}|X|}
+    \hline
+    \tablehead{Offset} & \tablehead{Tamaño} & \tablehead{Tipo} & \tablehead{Campo} & \tablehead{Descripción} \\
+    \hline \endhead
+
+    0 & 1 byte & \texttt{uint8\_t} & \texttt{mode} & Modo solicitado: \texttt{0x00} (\texttt{MODE\_VENTA}) o \texttt{0x01} (\texttt{MODE\_MANTENIMIENTO}). \\
+    \hline
+\end{xltabular}
+
+\requirement{UART-REQ-007}{Si el Arduino Mega se encuentra ejecutando físicamente un dispensado mecánico cuando recibe \texttt{SET\_MODE}, debe responder con \texttt{ACK\_REJECTED} y motivo \texttt{BUSY}, reteniendo el modo activo sin interrumpir el movimiento en curso.}
+
+\subsection{\texttt{HEARTBEAT} -- Verificación de enlace (\texttt{0x05})}
+
+\noindent
+\textbf{Dirección:} ESP32 $\rightarrow$ Arduino Mega $\rightarrow$ ESP32.\\
+\textbf{Longitud de payload:} 0 bytes ($\texttt{LEN} = 0$).\\
+\textbf{Propósito:} Mensaje de diagnóstico simple tipo ping/eco originado por el ESP32 para auditar la conectividad básica del enlace. El Arduino Mega responde emitiendo una trama idéntica en modo eco utilizando el mismo valor de \texttt{SEQ}. No existen reglas de supervisión periódica obligatoria ni estados de enlace degradado definidos normativamente.
+
+\subsection{\texttt{KEY} -- Evento de teclado matricial (\texttt{0x10})}
+
+\noindent
+\textbf{Dirección:} Arduino Mega $\rightarrow$ ESP32.\\
+\textbf{Longitud de payload:} Exactamente 2 bytes ($\texttt{LEN} = 2$).\\
+\textbf{Propósito:} Informar la pulsación estable de una tecla tras filtrado por debounce. El Arduino Mega no asigna significado de negocio al dígito; el ESP32 interpreta su efecto en la máquina de estados.
+
+\noindent\begin{xltabular}{\textwidth}{|p{1.1cm}|p{1.6cm}|p{1.7cm}|p{4.2cm}|X|}
+    \hline
+    \tablehead{Offset} & \tablehead{Tamaño} & \tablehead{Tipo} & \tablehead{Campo} & \tablehead{Descripción} \\
+    \hline \endhead
+
+    0 & 1 byte & \texttt{uint8\_t} & \texttt{key\_ascii} & Código ASCII de la tecla pulsada (\texttt{'0'}..\texttt{'9'}, \texttt{'A'}..\texttt{'D'}, \texttt{'*'}, \texttt{'\#'}). \\
+    \hline
+    1 & 1 byte & \texttt{uint8\_t} & \texttt{key\_seq} & Contador secuencial de tecla local (módulo 256) generado por Mega. \\
+    \hline
+\end{xltabular}
+
+\requirement{UART-REQ-008}{El ESP32 debe responder de inmediato a cada trama \texttt{KEY} recibida con un mensaje \texttt{ACK}.}
+
+\subsection{\texttt{DISPLAY} -- Actualización de pantalla LCD (\texttt{0x11})}
+
+\noindent
+\textbf{Dirección:} ESP32 $\rightarrow$ Arduino Mega.\\
+\textbf{Longitud de payload:} Exactamente 32 bytes ($\texttt{LEN} = 32$).\\
+\textbf{Propósito:} Actualizar el contenido textual de las 2 líneas de 16 caracteres del LCD.
+
+\noindent\begin{xltabular}{\textwidth}{|p{1.1cm}|p{1.6cm}|p{1.7cm}|p{4.2cm}|X|}
+    \hline
+    \tablehead{Offset} & \tablehead{Tamaño} & \tablehead{Tipo} & \tablehead{Campo} & \tablehead{Descripción} \\
+    \hline \endhead
+
+    0 & 16 bytes & ASCII fijo & \texttt{line1[16]} & Texto de la línea superior (16 caracteres, relleno con espacios). \\
+    \hline
+    16 & 16 bytes & ASCII fijo & \texttt{line2[16]} & Texto de la línea inferior (16 caracteres, relleno con espacios). \\
+    \hline
+\end{xltabular}
+
+\requirement{UART-REQ-009}{Arduino Mega no mantiene menús propios ni interpreta el contenido del display: copia directamente los 32 caracteres en el controlador del LCD y responde de inmediato con \texttt{ACK\_RECEIVED}.}
+
+\subsection{\texttt{VEND} -- Orden de dispensado físico (\texttt{0x12})}
+
+\noindent
+\textbf{Dirección:} ESP32 $\rightarrow$ Arduino Mega.\\
+\textbf{Longitud de payload:} Exactamente 5 bytes ($\texttt{LEN} = 5$).\\
+\textbf{Propósito:} Comandar el accionamiento del motor de entrega de un canal físico asociado a una transacción debidamente autorizada.
+
+\noindent\begin{xltabular}{\textwidth}{|p{1.1cm}|p{1.6cm}|p{1.7cm}|p{4.2cm}|X|}
+    \hline
+    \tablehead{Offset} & \tablehead{Tamaño} & \tablehead{Tipo} & \tablehead{Campo} & \tablehead{Descripción} \\
+    \hline \endhead
+
+    0 & 1 byte & \texttt{uint8\_t} & \texttt{channel} & Canal físico del producto a dispensar (valores válidos: 1 a 4). \\
+    \hline
+    1 & 4 bytes & \texttt{uint32\_t} & \texttt{transaction\_id} & Identificador único de transacción generado por el ESP32. \\
+    \hline
+\end{xltabular}
+
+\paragraph{Validaciones previas en Arduino Mega:}
+Antes de activar el actuador y responder con \texttt{ACK\_RECEIVED}, el Arduino Mega valida:
+\begin{enumerate}[leftmargin=1.8em]
+    \item Que el modo del sistema sea estrictamente \texttt{MODE\_VENTA}.
+    \item Que el canal recibido pertenezca al rango de hardware conectado ($1 \le \texttt{channel} \le 4$).
+    \item Que ningún motor se encuentre en movimiento activo en ese instante.
+    \item Que el sensor de puerta confirme que la puerta se encuentra cerrada.
+    \item Que el \texttt{transaction\_id} no sea nulo (\texttt{0x00000000}) ni centinela (\texttt{0xFFFFFFFF}).
+\end{enumerate}
+
+\requirement{UART-REQ-010}{Regla de idempotencia fundamental: Un mismo identificador \texttt{transaction\_id} jamás debe provocar el accionamiento del motor por segunda vez. Si el Arduino Mega recibe un comando \texttt{VEND} con un \texttt{transaction\_id} idéntico al de una orden ya procesada o en curso, no debe reiniciar ni repetir el movimiento mecánico; responderá de inmediato con \texttt{ACK\_RECEIVED} y reenviará el resultado físico obtenido previamente.}
+
+\requirement{UART-REQ-011}{Si arriba un comando \texttt{VEND} con un \texttt{transaction\_id} idéntico a uno previo pero indicando un canal distinto, el Arduino Mega rechazará la trama inmediatamente con \texttt{ACK\_REJECTED} y motivo \texttt{DUPLICATE\_CONFLICT}.}
+
+\subsection{\texttt{RESULT} -- Reporte de resultado físico (\texttt{0x13})}
+
+\noindent
+\textbf{Dirección:} Arduino Mega $\rightarrow$ ESP32.\\
+\textbf{Longitud de payload:} Exactamente 5 bytes ($\texttt{LEN} = 5$).\\
+\textbf{Propósito:} Notificación asíncrona enviada por el Arduino Mega una vez concluido el ciclo de dispensado para reportar el resultado de la entrega física.
+
+\noindent\begin{xltabular}{\textwidth}{|p{1.1cm}|p{1.6cm}|p{1.7cm}|p{4.2cm}|X|}
+    \hline
+    \tablehead{Offset} & \tablehead{Tamaño} & \tablehead{Tipo} & \tablehead{Campo} & \tablehead{Descripción} \\
+    \hline \endhead
+
+    0 & 4 bytes & \texttt{uint32\_t} & \texttt{transaction\_id} & Identificador de la transacción que motivó la entrega. \\
+    \hline
+    4 & 1 byte & \texttt{uint8\_t} & \texttt{result} & Desenlace físico: \texttt{DELIVERED}, \texttt{REJECTED\_BEFORE\_MOTION} o \texttt{UNCERTAIN}. \\
+    \hline
+\end{xltabular}
+
+\requirement{UART-REQ-012}{El ESP32 debe confirmar la recepción del mensaje \texttt{RESULT} emitiendo de inmediato un mensaje \texttt{ACK}.}
+
+
+% ============================================================================
+% SECCION 7 - MATRIZ NORMATIVA DE RESPUESTAS
+% ============================================================================
+
+\clearpage
+\section{Matriz de respuestas del protocolo}
+
+La siguiente matriz resume la respuesta inmediata obligatoria ante la recepción
+de cada comando del protocolo:
+
+\noindent\begin{xltabular}{\textwidth}{|p{3.2cm}|p{3.5cm}|X|}
+    \hline
+    \tablehead{Mensaje recibido} & \tablehead{Dirección del mensaje} & \tablehead{Respuesta inmediata obligatoria} \\
+    \hline \endhead
+
+    \texttt{HELLO} & Ambas direcciones & \texttt{HELLO} (mismo \texttt{SEQ}, confirma versión y rol). \\
+    \hline
+    \texttt{ACK} & Ambas direcciones & \textbf{Ninguna} (nunca se responde a un ACK). \\
+    \hline
+    \texttt{STATUS} (solicitud) & ESP32 $\rightarrow$ Mega & \texttt{STATUS} (respuesta con $\texttt{LEN} = 7$, mismo \texttt{SEQ}). \\
+    \hline
+    \texttt{SET\_MODE} & ESP32 $\rightarrow$ Mega & \texttt{ACK} (\texttt{RECEIVED} o \texttt{REJECTED} con motivo). \\
+    \hline
+    \texttt{HEARTBEAT} & ESP32 $\rightarrow$ Mega & \texttt{HEARTBEAT} (modo eco, $\texttt{LEN} = 0$, mismo \texttt{SEQ}). \\
+    \hline
+    \texttt{KEY} & Mega $\rightarrow$ ESP32 & \texttt{ACK} (\texttt{RECEIVED} o \texttt{REJECTED}). \\
+    \hline
+    \texttt{DISPLAY} & ESP32 $\rightarrow$ Mega & \texttt{ACK} (\texttt{RECEIVED} o \texttt{REJECTED}). \\
+    \hline
+    \texttt{VEND} & ESP32 $\rightarrow$ Mega & \texttt{ACK} inmediato + \texttt{RESULT} asíncrono posterior. \\
+    \hline
+    \texttt{RESULT} & Mega $\rightarrow$ ESP32 & \texttt{ACK} (\texttt{RECEIVED} o \texttt{REJECTED}). \\
+    \hline
+\end{xltabular}
+
+
+% ============================================================================
+% SECCION 8 - DIAGRAMAS DE SECUENCIA DE REFERENCIA
+% ============================================================================
+
+\section{Diagramas de secuencia de referencia}
+
+Los siguientes diagramas ilustran los flujos operativos estándar entre el ESP32
+y el Arduino Mega para los escenarios cardinales del sistema.
+
+\subsection{Secuencia 1: Arranque normal y configuración de modo}
+
+\begin{center}
+\begin{tikzpicture}
+    \node[seqactor] at (2.8,0) (esp) {ESP32};
+    \node[seqactor] at (9.8,0) (mega) {Arduino Mega};
+    \draw[thick, dashed, gray!60] (2.8,-0.3) -- (2.8,-3.8);
+    \draw[thick, dashed, gray!60] (9.8,-0.3) -- (9.8,-3.8);
+
+    \node[seqnote, anchor=west] at (10.0,-0.6) {Mega inicia por defecto\\en MODE\_MANTENIMIENTO};
+    \draw[seqmsg] (2.8,-1.2) -- node[above] {HELLO [SEQ=0x01, v2.0, ESP32]} (9.8,-1.2);
+    \draw[seqmsgback] (9.8,-1.8) -- node[above] {HELLO [SEQ=0x01, v2.0, MEGA]} (2.8,-1.8);
+    \node[seqnote] at (6.3,-2.3) {Handshake de versiones 2.0 completado con éxito};
+    \draw[seqmsg] (2.8,-2.9) -- node[above] {SET\_MODE [SEQ=0x02, MODE\_VENTA]} (9.8,-2.9);
+    \draw[seqmsgback] (9.8,-3.5) -- node[above] {ACK [SEQ=0x02, cmd=0x04, RECEIVED, NONE]} (2.8,-3.5);
+\end{tikzpicture}
+\end{center}
+
+\subsection{Secuencia 2: Captura y notificación de tecla física}
+
+\begin{center}
+\begin{tikzpicture}
+    \node[seqactor] at (2.8,0) (esp) {ESP32};
+    \node[seqactor] at (9.8,0) (mega) {Arduino Mega};
+    \draw[thick, dashed, gray!60] (2.8,-0.3) -- (2.8,-2.6);
+    \draw[thick, dashed, gray!60] (9.8,-0.3) -- (9.8,-2.6);
+
+    \node[seqnote, anchor=west] at (10.0,-0.7) {Usuario presiona tecla `5'\\Filtro debounce validado};
+    \draw[seqmsgback] (9.8,-1.3) -- node[above] {KEY [SEQ=0x14, ascii=`5' (0x35), key\_seq=0x07]} (2.8,-1.3);
+    \draw[seqmsg] (2.8,-1.9) -- node[above] {ACK [SEQ=0x14, cmd=0x10, RECEIVED, NONE]} (9.8,-1.9);
+    \node[seqnote, anchor=east] at (2.6,-2.3) {ESP32 evalúa contexto en FSM};
+\end{tikzpicture}
+\end{center}
+
+\subsection{Secuencia 3: Venta exitosa completa}
+
+\begin{center}
+\begin{tikzpicture}
+    \node[seqactor] at (2.8,0) (esp) {ESP32};
+    \node[seqactor] at (9.8,0) (mega) {Arduino Mega};
+    \draw[thick, dashed, gray!60] (2.8,-0.3) -- (2.8,-4.2);
+    \draw[thick, dashed, gray!60] (9.8,-0.3) -- (9.8,-4.2);
+
+    \node[seqnote, anchor=east] at (2.6,-0.6) {ESP32 autoriza compra\\y genera tx\_id=42};
+    \draw[seqmsg] (2.8,-1.0) -- node[above] {VEND [SEQ=0x20, ch=3, tx=42]} (9.8,-1.0);
+    \draw[seqmsgback] (9.8,-1.6) -- node[above] {ACK [SEQ=0x20, cmd=0x12, RECEIVED, NONE]} (2.8,-1.6);
+    \node[seqnote, anchor=west] at (10.0,-2.1) {Mega acciona motor canal 3;\\sensor óptico detecta caída};
+    \draw[seqmsgback] (9.8,-2.8) -- node[above] {RESULT [SEQ=0x21, tx=42, DELIVERED]} (2.8,-2.8);
+    \draw[seqmsg] (2.8,-3.4) -- node[above] {ACK [SEQ=0x21, cmd=0x13, RECEIVED, NONE]} (9.8,-3.4);
+    \node[seqnote, anchor=east] at (2.6,-3.9) {ESP32 asienta venta en SQLite};
+\end{tikzpicture}
+\end{center}
+
+
+\subsection{Secuencia 4: Idempotencia ante VEND duplicado}
+
+\begin{center}
+\begin{tikzpicture}
+    \node[seqactor] at (2.8,0) (esp) {ESP32};
+    \node[seqactor] at (9.8,0) (mega) {Arduino Mega};
+    \draw[thick, dashed, gray!60] (2.8,-0.3) -- (2.8,-4.2);
+    \draw[thick, dashed, gray!60] (9.8,-0.3) -- (9.8,-4.2);
+
+    \draw[seqmsg] (2.8,-0.8) -- node[above] {VEND [SEQ=0x20, ch=3, tx=42]} (9.8,-0.8);
+    \draw[seqmsglost] (9.8,-1.4) -- (6.3,-1.4) node[midway, above] {ACK inicial perdido} node[SAIDRed, font=\bfseries] {$\times$};
+    \node[seqnote, anchor=east] at (2.6,-2.0) {ESP32 retransmite solicitud\\con idéntico SEQ y tx\_id=42};
+    \draw[seqmsg] (2.8,-2.6) -- node[above] {VEND [SEQ=0x20, ch=3, tx=42]} (9.8,-2.6);
+    \node[seqnote, anchor=west] at (10.0,-2.9) {Mega detecta tx\_id=42 repetida:\\\textbf{NO acciona el motor por 2da vez}};
+    \draw[seqmsgback] (9.8,-3.6) -- node[above] {ACK [SEQ=0x20, cmd=0x12, RECEIVED, NONE]} (2.8,-3.6);
+\end{tikzpicture}
+\end{center}
+
+\subsection{Secuencia 5: Consulta de estado de sensores (STATUS)}
+
+\begin{center}
+\begin{tikzpicture}
+    \node[seqactor] at (2.8,0) (esp) {ESP32};
+    \node[seqactor] at (9.8,0) (mega) {Arduino Mega};
+    \draw[thick, dashed, gray!60] (2.8,-0.3) -- (2.8,-2.6);
+    \draw[thick, dashed, gray!60] (9.8,-0.3) -- (9.8,-2.6);
+
+    \draw[seqmsg] (2.8,-0.8) -- node[above] {STATUS [SEQ=0x25, LEN=0]} (9.8,-0.8);
+    \draw[seqmsgback] (9.8,-1.6) -- node[above] {STATUS resp [SEQ=0x25, LEN=7, door=0, barrier=0, mode=VENTA, tx=0xFFFFFFFF]} (2.8,-1.6);
+    \node[seqnote] at (6.3,-2.2) {ESP32 actualiza lectura de sensores físicos sin requerir ACK adicional};
+\end{tikzpicture}
+\end{center}
+
+\subsection{Secuencia 6: Diagnóstico de enlace mediante ping/eco (HEARTBEAT)}
+
+\begin{center}
+\begin{tikzpicture}
+    \node[seqactor] at (2.8,0) (esp) {ESP32};
+    \node[seqactor] at (9.8,0) (mega) {Arduino Mega};
+    \draw[thick, dashed, gray!60] (2.8,-0.3) -- (2.8,-2.4);
+    \draw[thick, dashed, gray!60] (9.8,-0.3) -- (9.8,-2.4);
+
+    \draw[seqmsg] (2.8,-0.7) -- node[above] {HEARTBEAT [SEQ=0x30, LEN=0]} (9.8,-0.7);
+    \draw[seqmsgback] (9.8,-1.4) -- node[above] {HEARTBEAT eco [SEQ=0x30, LEN=0]} (2.8,-1.4);
+    \node[seqnote] at (6.3,-2.0) {Conectividad básica del enlace serie confirmada};
+\end{tikzpicture}
+\end{center}
+
+
+% ============================================================================
+% SECCION 9 - EJEMPLOS COMPACTOS DE TRAMAS
+% ============================================================================
+
+\clearpage
+\section{Ejemplos compactos de tramas}
+
+Los siguientes ejemplos ilustran la composición secuencial byte a byte de tramas
+representativas sin campos de verificación checksum o CRC.
+
+\subsection{Ejemplo A: Notificación de tecla \texttt{KEY('5')} emitida por Arduino Mega}
+
+\begin{itemize}[leftmargin=1.6em]
+    \item \textbf{Parámetros:} $\texttt{CMD} = \texttt{0x10}$, $\texttt{SEQ} = \texttt{0x14}$, $\texttt{LEN} = 2$, Carácter ASCII \texttt{'5'} (\texttt{0x35}), $\texttt{key\_seq} = \texttt{0x07}$.
+    \item \textbf{Trama total transmitida (8 bytes):} \texttt{A5 5A 02 10 14 02 35 07}
+\end{itemize}
+
+\noindent\begin{xltabular}{\textwidth}{|p{1.4cm}|p{2.2cm}|p{2.5cm}|X|}
+    \hline
+    \tablehead{Offset} & \tablehead{Valor (Hex)} & \tablehead{Campo} & \tablehead{Interpretación} \\
+    \hline \endhead
+
+    0 & \texttt{0xA5} & \texttt{SOF1} & Primer byte de sincronización. \\
+    \hline
+    1 & \texttt{0x5A} & \texttt{SOF2} & Segundo byte de sincronización. \\
+    \hline
+    2 & \texttt{0x02} & \texttt{PROTO} & Versión mayor del protocolo (v2). \\
+    \hline
+    3 & \texttt{0x10} & \texttt{CMD} & Identificador de comando \texttt{KEY}. \\
+    \hline
+    4 & \texttt{0x14} & \texttt{SEQ} & Número de secuencia \texttt{0x14} (decimal 20). \\
+    \hline
+    5 & \texttt{0x02} & \texttt{LEN} & Dos bytes de carga útil. \\
+    \hline
+    6 & \texttt{0x35} & \texttt{key\_ascii} & Código ASCII del carácter \texttt{'5'}. \\
+    \hline
+    7 & \texttt{0x07} & \texttt{key\_seq} & Contador secuencial de pulsación local \texttt{0x07}. \\
+    \hline
+\end{xltabular}
+
+\subsection{Ejemplo B: Orden de dispensado \texttt{VEND(ch=3, tx=42)} emitida por ESP32}
+
+\begin{itemize}[leftmargin=1.6em]
+    \item \textbf{Parámetros:} $\texttt{CMD} = \texttt{0x12}$, $\texttt{SEQ} = \texttt{0x20}$, $\texttt{LEN} = 5$, $\texttt{channel} = 3$, $\texttt{transaction\_id} = 42$ (\texttt{0x0000002A}).
+    \item \textbf{Trama total transmitida (11 bytes):} \texttt{A5 5A 02 12 20 05 03 2A 00 00 00}
+\end{itemize}
+
+\noindent\begin{xltabular}{\textwidth}{|p{1.4cm}|p{2.2cm}|p{2.5cm}|X|}
+    \hline
+    \tablehead{Offset} & \tablehead{Valor (Hex)} & \tablehead{Campo} & \tablehead{Interpretación} \\
+    \hline \endhead
+
+    0 & \texttt{0xA5} & \texttt{SOF1} & Primer byte de sincronización. \\
+    \hline
+    1 & \texttt{0x5A} & \texttt{SOF2} & Segundo byte de sincronización. \\
+    \hline
+    2 & \texttt{0x02} & \texttt{PROTO} & Versión mayor del protocolo (v2). \\
+    \hline
+    3 & \texttt{0x12} & \texttt{CMD} & Identificador de comando \texttt{VEND}. \\
+    \hline
+    4 & \texttt{0x20} & \texttt{SEQ} & Número de secuencia \texttt{0x20} (decimal 32). \\
+    \hline
+    5 & \texttt{0x05} & \texttt{LEN} & Cinco bytes de carga útil. \\
+    \hline
+    6 & \texttt{0x03} & \texttt{channel} & Canal electromecánico solicitado (Canal 3). \\
+    \hline
+    7 & \texttt{0x2A} & \texttt{tx\_id[0]} & Byte de menor peso de \texttt{transaction\_id} (42 decimal). \\
+    \hline
+    8 & \texttt{0x00} & \texttt{tx\_id[1]} & Byte 1 de \texttt{transaction\_id}. \\
+    \hline
+    9 & \texttt{0x00} & \texttt{tx\_id[2]} & Byte 2 de \texttt{transaction\_id}. \\
+    \hline
+    10 & \texttt{0x00} & \texttt{tx\_id[3]} & Byte de mayor peso de \texttt{transaction\_id}. \\
+    \hline
+\end{xltabular}
+
+
+% ============================================================================
+% SECCION 10 - CRITERIOS DE VERIFICACION DE INTEGRACION
+% ============================================================================
+
+\clearpage
+\section{Criterios de verificación de integración}
+
+Las implementaciones de firmware de ESP32 y Arduino Mega deben superar
+satisfactoriamente el siguiente banco de pruebas de interoperabilidad antes de
+autorizar pruebas en la máquina física:
+
+\noindent\begin{xltabular}{\textwidth}{|p{2.0cm}|p{6.0cm}|X|}
+    \hline
+    \tablehead{ID Prueba} & \tablehead{Procedimiento de prueba} & \tablehead{Criterio de aceptación normativo} \\
+    \hline \endhead
+
+    \texttt{UART-T01} & Inyección de trama sintáctica válida (\texttt{VEND}, \texttt{KEY}, \texttt{DISPLAY}). & El nodo receptor procesa la trama íntegramente y emite la confirmación esperada sin desbordamiento de memoria ni bloqueos. \\
+    \hline
+    \texttt{UART-T02} & Inyección de trama con valor de longitud anómalo ($\texttt{LEN} > 32$ o no coincidente con \texttt{CMD}). & El receptor descarta la trama por longitud inválida o responde \texttt{ACK\_REJECTED} con motivo \texttt{INVALID\_LENGTH}. \\
+    \hline
+    \texttt{UART-T03} & Envío de comando \texttt{VEND} indicando un canal fuera de rango ($\texttt{channel} = 0$ o $\texttt{channel} = 5$). & Arduino Mega responde de inmediato con \texttt{ACK\_REJECTED} y motivo \texttt{INVALID\_CHANNEL} sin activar actuadores. \\
+    \hline
+    \texttt{UART-T04} & Envío sucesivo de dos comandos \texttt{VEND} con idéntico \texttt{transaction\_id}. & Arduino Mega activa el motor una sola vez para la primera orden; ante la segunda devuelve \texttt{ACK\_RECEIVED} sin segundo movimiento mecánico. \\
+    \hline
+    \texttt{UART-T05} & Envío de comando \texttt{VEND} con idéntico \texttt{transaction\_id} pero canal diferente. & Arduino Mega detecta conflicto de duplicado y rechaza de inmediato con \texttt{ACK\_REJECTED} y motivo \texttt{DUPLICATE\_CONFLICT}. \\
+    \hline
+    \texttt{UART-T06} & Inyección de trama con identificador de comando no registrado en el diccionario. & El receptor responde de inmediato con \texttt{ACK\_REJECTED} reportando motivo \texttt{INVALID\_CMD}. \\
+    \hline
+\end{xltabular}
+
+\end{document}

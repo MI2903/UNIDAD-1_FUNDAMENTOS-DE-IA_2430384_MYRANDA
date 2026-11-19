@@ -1,0 +1,609 @@
+\documentclass[12pt,letterpaper,oneside]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-nodecimaldot,es-tabla]{babel}
+\usepackage{mathptmx}          % Times, que es la que uso siempre en los reportes
+
+\usepackage[letterpaper,top=2.5cm,bottom=2.5cm,left=3cm,right=2.5cm]{geometry}
+\usepackage{setspace}
+\onehalfspacing
+\setlength{\parindent}{1.25cm}
+
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage{amsmath}
+\usepackage{microtype}      % ajusta el espaciado, se lee mucho mejor
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{arrows.meta}
+\usepackage[hidelinks]{hyperref}
+\urlstyle{same}
+
+% Sin esto los DOI largos de las referencias se me salian del margen
+\def\UrlBreaks{\do\/\do-\do.\do:\do_\do?\do\&\do=}
+\Urlmuskip=0mu plus 1mu\relax
+
+\pagestyle{plain}
+\captionsetup{font=small,labelfont=bf}
+
+% Columna angosta pero alineada a la izquierda; justificada se veian
+% huecos feos entre palabras
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+
+% Las referencias APA van con sangria francesa y aqui no uso bibtex,
+% asi que me armo la lista a mano con este entorno
+\newenvironment{referencias}
+  {\begin{list}{}{%
+      \setlength{\leftmargin}{1.25cm}%
+      \setlength{\itemindent}{-1.25cm}%
+      \setlength{\itemsep}{0.6em}%
+      \setlength{\parsep}{0pt}}%
+   \setstretch{1.1}}
+  {\end{list}}
+
+
+\begin{document}
+
+%Portada
+% Datos de la portada. Si cambia la matricula solo la corrijo aqui.
+\begin{titlepage}
+\centering
+\vspace*{1.5cm}
+
+{\large Universidad Politécnica de Victoria}\\[0.3cm]
+{\normalsize Ingeniería en Tecnologías de la Información}\\[3cm]
+
+{\LARGE\bfseries Evolución histórica de la Inteligencia Artificial}\\[0.6cm]
+{\large De los fundamentos teóricos y el test de Turing\\
+al aprendizaje profundo, la IA generativa y el TinyML}\\[2.5cm]
+
+{\large Reporte de lectura analítica e investigación documental}\\[3cm]
+
+{\normalsize
+Presenta: Myranda Belén Infante Castillo\\[0.2cm]
+Matrícula: 2430384\\[0.2cm]
+Séptimo cuatrimestre\\[1.2cm]
+Docente: Dr. Said Polanco Martagón\\[0.2cm]
+Asignatura: Fundamentos de Inteligencia Artificial}
+
+\vfill
+
+{\normalsize Ciudad Victoria, Tamaulipas\\ Septiembre de 2026}
+
+\end{titlepage}
+
+\setcounter{page}{2}
+\tableofcontents
+\newpage
+
+
+%=======================================================================
+\section{Introducción}
+%=======================================================================
+
+De todas las áreas de la computación, la Inteligencia Artificial (IA) es probablemente la que más tiempo tardó en pasar de la idea a la práctica. Varios de los conceptos que hoy sostienen a los sistemas comerciales más exitosos, como la neurona artificial, el ajuste de pesos por aprendizaje o la representación distribuida del conocimiento, se formularon entre los años cuarenta y ochenta del siglo pasado. Aun así, tuvieron que esperar entre treinta y setenta años para volverse útiles. Esa distancia entre lo teóricamente posible y lo computacionalmente viable es el hilo que decidí seguir para organizar este reporte.
+
+La distinción me parece importante para mi formación. Uno tiende a suponer que una idea correcta se implementa de inmediato, pero la historia de la IA demuestra lo contrario. El algoritmo de retropropagación ya estaba publicado y era matemáticamente sólido en 1986; entrenar con él una red de ocho capas sobre un millón de imágenes siguió siendo imposible hasta que las tarjetas gráficas se volvieron programables de propósito general. Entender ese desfase ayuda a evaluar con más criterio cualquier promesa tecnológica del presente.
+
+\subsection{Planteamiento del problema}
+
+Tanto en la divulgación como en el discurso empresarial existe la tendencia a presentar la IA como algo que nació alrededor de 2022, con la popularización de los modelos generativos de lenguaje. Esa lectura es incorrecta y además empobrece el tema, porque oculta dos cosas: que el paradigma actual, basado en datos, sustituyó a otro anterior basado en reglas, y que esa sustitución ocurrió después de dos crisis de financiamiento severas. Tampoco fue producto de una revolución conceptual, sino de la coincidencia de tres factores materiales: datos etiquetados en abundancia, cómputo paralelo accesible y un ecosistema de software maduro.
+
+Reconstruir la cronología con precisión sirve además para responder una pregunta concreta de ingeniería: ¿qué condiciones deben cumplirse para que una técnica de IA pase del artículo académico al producto desplegado? Esa misma pregunta se está volviendo a poner a prueba hoy con el TinyML, es decir, con el intento de ejecutar inferencia de aprendizaje automático en microcontroladores que apenas tienen unos cuantos kilobytes de memoria.
+
+\subsection{Objetivos}
+
+\subsubsection{Objetivo general}
+
+Sintetizar la evolución histórica de la Inteligencia Artificial a partir del análisis de fuentes primarias y secundarias, identificando los hitos teóricos, algorítmicos y de hardware que explican la transición de los sistemas basados en reglas hacia los sistemas basados en datos.
+
+\subsubsection{Objetivos específicos}
+
+\begin{enumerate}[label=\alph*),leftmargin=1.6cm,itemsep=0.2em]
+  \item Identificar y caracterizar las etapas clave del desarrollo de la IA: fundamentos teóricos, IA simbólica, inviernos de la IA, auge del aprendizaje automático y era de los datos masivos.
+  \item Construir una cronología técnica que vincule cada avance teórico con los lenguajes de programación y las plataformas de cómputo predominantes en su época.
+  \item Analizar la transición hacia el \textit{Machine Learning} y su extensión más reciente hacia el borde de la red mediante TinyML.
+  \item Argumentar de qué manera la capacidad de cómputo actual habilitó la implementación de redes neuronales profundas que eran teóricamente posibles pero computacionalmente inviables.
+  \item Documentar el trabajo en un reporte elaborado en \LaTeX{}, con referencias en formato APA (séptima edición).
+\end{enumerate}
+
+\subsection{Metodología de trabajo}
+
+El reporte se elaboró en cuatro fases. La primera fue la lectura y fichado de los ocho artículos entregados por el docente, extrayendo de cada uno los hitos, fechas y argumentos que resultaran útiles; la Tabla~\ref{tab:fuentes} resume qué aportó cada texto.
+
+La segunda fase consistió en una investigación complementaria vía Internet. Realicé consultas dirigidas a un asistente conversacional (Claude, de Anthropic) y búsquedas en repositorios académicos abiertos como arXiv, MDPI e IEEE \textit{Xplore}, con el fin de cubrir los temas que las fuentes proporcionadas tratan de manera tangencial, sobre todo el TinyML, la evolución del hardware y los lenguajes de programación. Toda la información obtenida por esa vía la contrasté contra al menos una fuente primaria antes de incorporarla, y las respuestas del asistente las usé como guía de búsqueda, no como fuente de autoridad.
+
+En la tercera fase organicé los hitos identificados en una línea de tiempo que correlaciona teoría, lenguaje de programación y limitación de cómputo predominante (Sección~\ref{sec:cronologia}). Finalmente redacté el documento en \LaTeX{}, con las figuras generadas en Ti\textit{k}Z y \textit{pgfplots} y las referencias en formato APA 7.
+
+% Esta tabla la hice sobre todo para no perderme entre los ocho articulos,
+% pero tambien deja ver que si los revise todos.
+\begin{table}[H]
+\centering
+\caption{Aportación de cada fuente proporcionada al presente reporte}
+\label{tab:fuentes}
+\small
+\begin{tabular}{@{}L{4.6cm}L{9.2cm}@{}}
+\toprule
+\textbf{Fuente} & \textbf{Aportación principal} \\
+\midrule
+Haenlein y Kaplan (2019) & Periodización de la IA mediante la analogía de las cuatro estaciones; distinción entre sistemas expertos y IA propiamente dicha. \\
+Buchanan (2005) & Genealogía intelectual de la IA; papel de LISP, IPL y POP; principio de \textit{satisficing} y heurísticas. \\
+Grosz (2012) & Reinterpretación del test de Turing a la luz de seis décadas de avances; crítica a su vigencia como criterio. \\
+Miłkowski (2022) & Análisis del test de Turing como ingeniería conceptual y no como operacionalismo conductista. \\
+Abramson (2011) & Continuidad filosófica entre la prueba del lenguaje cartesiana y el test de Turing. \\
+Natale y Henrickson (2024) & Objeción de Lovelace y efecto Lovelace; percepción social de la creatividad artificial. \\
+Zenil (2021) & Compresión como comprensión; fundamento algorítmico e informacional de los modelos. \\
+Zhang et al.\ (2023) & Trayectoria técnica de Turing a los \textit{transformers}; cronología de los modelos generativos. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+%=======================================================================
+\section{Antecedentes: la IA antes de la IA (siglo XVII a 1949)}
+%=======================================================================
+
+Buchanan (2005) describe la historia de la IA como una historia de fantasías, posibilidades, demostraciones y promesas. Antes de que existiera un solo programa, la idea de una máquina pensante ya circulaba como recurso filosófico y literario.
+
+\subsection{La raíz filosófica}
+
+René Descartes usó la figura del hombre mecánico más como metáfora que como posibilidad técnica. Leibniz, en cambio, sí llegó a concebir dispositivos de razonamiento mecánico capaces de resolver disputas aplicando reglas lógicas. Tanto él como Pascal construyeron calculadoras que mecanizaron la aritmética, aunque ninguno afirmó que esas máquinas pensaran (Buchanan, 2005).
+
+La aportación cartesiana resulta más profunda de lo que suele reconocerse. Abramson (2011) argumenta que Descartes formuló una prueba del lenguaje: ninguna máquina, por bien construida que estuviera, podría responder con sentido a la variedad indefinida de situaciones lingüísticas que enfrenta un ser humano. Turing muy probablemente conocía ese argumento, y su propio test comparte con él el mismo propósito, que es establecer un criterio observable para atribuir o negar entendimiento. Esto tiene una consecuencia importante: el test de Turing no es un ejercicio de conductismo, sino la sustitución deliberada de una pregunta metafísica por una condición que sí se puede verificar.
+
+\subsection{Ada Lovelace y la objeción de la originalidad}
+
+En el siglo XIX, al comentar la Máquina Analítica de Babbage, Ada Lovelace formuló lo que hoy conocemos como la objeción de Lovelace: una máquina no puede originar nada, solo puede hacer aquello que se le ordene. Natale y Henrickson (2024) señalan que esta objeción atravesó todo el siglo XX como el principal obstáculo conceptual para atribuir creatividad a las máquinas. Frente a ella proponen la noción de efecto Lovelace, que describe las situaciones en que los usuarios perciben el comportamiento de un sistema como original y creativo, con independencia de lo que ontológicamente esté ocurriendo adentro. Al analizar AICAN, un sistema generador de arte, muestran que ese efecto se produce tanto por medios técnicos como representacionales: el contexto cultural en el que se presenta la interacción condiciona la atribución de creatividad.
+
+Ese desplazamiento del qué puede hacer la máquina al qué percibe el usuario resulta hoy sorprendentemente actual, porque es el terreno exacto en el que se discute la naturaleza de los modelos generativos de lenguaje.
+
+\subsection{Los cimientos formales (1936 a 1949)}
+
+El periodo entre 1936 y 1949 aporta los cuatro pilares sobre los que se construye todo lo demás:
+
+\begin{itemize}[leftmargin=1.4cm,itemsep=0.25em]
+  \item \textbf{1936, la máquina de Turing.} Turing define un modelo abstracto de cómputo que establece qué es computable y qué no. Zhang et al.\ (2023) sitúan aquí el punto de partida de la trayectoria que llega hasta los \textit{transformers}.
+  \item \textbf{1943, la neurona formal.} McCulloch y Pitts proponen un modelo lógico de la actividad nerviosa, con la neurona como unidad de umbral que computa funciones booleanas. Es el primer puente explícito entre neurofisiología y lógica computacional.
+  \item \textbf{1942 a 1945, el impulso bélico.} Turing desarrolla \textit{The Bombe} para descifrar el código Enigma. Haenlein y Kaplan (2019) destacan que esta máquina electromecánica, de casi una tonelada, resolvió un problema que estaba fuera del alcance de los mejores matemáticos humanos, y que fue justamente esa desproporción la que llevó a Turing a preguntarse por la inteligencia de las máquinas.
+  \item \textbf{1949, el aprendizaje hebbiano.} Donald Hebb formula una teoría del aprendizaje basada en el refuerzo de las conexiones entre neuronas que se activan juntas. Haenlein y Kaplan (2019) subrayan que este es el origen directo de la investigación en redes neuronales artificiales, es decir, del enfoque estadístico que tardaría más de sesenta años en imponerse.
+\end{itemize}
+
+Vale la pena mencionar la influencia interdisciplinaria que documenta Buchanan (2005): la cibernética de Wiener, la teoría de la información de Shannon, la teoría de juegos de Von Neumann y Morgenstern y la lingüística de Chomsky confluyeron en la formación del campo.
+
+
+%=======================================================================
+\section{Desarrollo cronológico de la Inteligencia Artificial}
+\label{sec:cronologia}
+%=======================================================================
+
+Para organizar seis décadas adopté la periodización estacional que proponen Haenlein y Kaplan (2019), es decir primavera, verano, invierno y otoño, pero la desagregué en siete etapas para poder cruzarla con la evolución del hardware y de los lenguajes.
+
+\subsection{Primavera: el nacimiento formal (1950 a 1956)}
+
+\subsubsection{El artículo de 1950 y el juego de imitación}
+
+En octubre de 1950 Turing publica en la revista \textit{Mind} el artículo ``Computing Machinery and Intelligence''. Su propuesta consiste en sustituir la pregunta de si las máquinas pueden pensar por una pregunta operacional: si existen computadoras digitales imaginables que tendrían un buen desempeño en el juego de imitación (Grosz, 2012). Turing conjeturó que hacia el año 2000 sería posible programar computadoras con una capacidad de almacenamiento de alrededor de $10^9$ unidades, de modo que un interrogador promedio no tuviera más del 70\% de probabilidad de identificación correcta después de cinco minutos.
+
+Buchanan (2005) considera este artículo el mayor punto de inflexión en la historia de la IA, porque cristaliza la idea de programar una computadora electrónica para comportarse de manera inteligente. Miłkowski (2022) ofrece la lectura que me parece más precisa: el test de Turing no es operacionalismo, sino un caso de ingeniería conceptual. Turing no pretendía definir la inteligencia por su manifestación conductual, sino proponer una definición precisante que revisara el uso del concepto y sirviera de escalón hacia una comprensión teórica del pensamiento en términos mecánicos.
+
+Grosz (2012) plantea una objeción que me pareció muy útil: si Turing escribiera hoy, después de que la investigación en computación, neurociencia y ciencias del comportamiento transformara nuestra concepción de los procesos mentales, probablemente propondría una prueba distinta, orientada a la colaboración entre humanos y máquinas antes que a la simple indistinguibilidad conversacional.
+
+\subsubsection{La conferencia de Dartmouth (1956)}
+
+El término \textit{Artificial Intelligence} se acuña formalmente en 1956, cuando Minsky y McCarthy organizan el \textit{Dartmouth Summer Research Project on Artificial Intelligence}, un taller de unas ocho semanas financiado por la Fundación Rockefeller (Haenlein y Kaplan, 2019). Entre los participantes estuvieron Nathaniel Rochester, diseñador de la IBM 701, y Claude Shannon, fundador de la teoría de la información. Ahí se demostró el programa \textit{Logic Theorist} de Newell, Shaw y Simon, capaz de generar demostraciones de teoremas lógicos (Buchanan, 2005).
+
+\subsection{Verano: optimismo y demostraciones (1956 a 1973)}
+
+Las casi dos décadas siguientes a Dartmouth produjeron una sucesión de demostraciones notables:
+
+\begin{itemize}[leftmargin=1.4cm,itemsep=0.25em]
+  \item \textbf{Damas de Samuel (años cincuenta).} Arthur Samuel escribió para la IBM 704, en ensamblador, un programa de damas que mejoraba su propio desempeño jugando contra oponentes humanos y contra otras computadoras. Buchanan (2005) lo califica de proeza dadas las limitaciones del hardware y del lenguaje, y destaca que ya incorporaba aprendizaje por experiencia.
+  \item \textbf{Perceptrón (1958).} Frank Rosenblatt implementa el primer modelo entrenable de neurona artificial, con una regla de actualización de pesos que converge para problemas linealmente separables.
+  \item \textbf{LISP (1958).} McCarthy crea el lenguaje que dominará la IA durante tres décadas. Buchanan (2005) señala que los lenguajes de manipulación simbólica, junto con los sistemas de tiempo compartido y los avances en procesadores y memoria, dieron a los programadores un poder inédito.
+  \item \textbf{GPS (1959).} El \textit{General Problem Solver} de Newell, Shaw y Simon resuelve automáticamente problemas como las Torres de Hanói (Haenlein y Kaplan, 2019).
+  \item \textbf{ELIZA (1964 a 1966).} Joseph Weizenbaum construye en el MIT un programa capaz de simular una conversación mediante coincidencia de patrones. Fue uno de los primeros intentos de aproximarse al test de Turing.
+  \item \textbf{DENDRAL (de 1965 en adelante).} Primer sistema experto de relevancia científica, orientado a inferir estructuras moleculares.
+\end{itemize}
+
+El clima intelectual de esos años queda retratado en la declaración que Minsky dio a \textit{Life Magazine} en 1970, donde afirmó que una máquina con la inteligencia general de un ser humano promedio podría desarrollarse en un plazo de tres a ocho años (Haenlein y Kaplan, 2019).
+
+Conviene notar un desplazamiento metodológico que describe Minsky (1968) y que recoge Buchanan (2005). Antes de 1962 la preocupación central era encontrar heurísticas que controlaran la amplitud de la búsqueda por ensayo y error; después de 1962 el foco se trasladó al problema de la representación del conocimiento. Ese cambio prefigura el auge de los sistemas expertos.
+
+\subsection{Primer invierno (1973 a 1980)}
+
+En 1969 Minsky y Papert demuestran formalmente en \textit{Perceptrons} las limitaciones del perceptrón de una sola capa, en particular su incapacidad para representar la función XOR. Según recogen Haenlein y Kaplan (2019), también evidencian que las computadoras de la época no tenían potencia de procesamiento suficiente para manejar el trabajo que exigían las redes neuronales artificiales. La investigación conexionista se estanca.
+
+En 1973 el Congreso de Estados Unidos empieza a criticar duramente el gasto en investigación en IA, y el matemático británico James Lighthill publica un informe encargado por el \textit{British Science Research Council} donde cuestiona el optimismo de los investigadores. Lighthill sostuvo que las máquinas nunca pasarían del nivel de un aficionado experimentado en juegos como el ajedrez y que el razonamiento de sentido común quedaría siempre fuera de su alcance. El gobierno británico canceló entonces el apoyo a la investigación en IA salvo en Edimburgo, Sussex y Essex, y el gobierno estadounidense siguió poco después el mismo camino (Haenlein y Kaplan, 2019).
+
+El diagnóstico de Lighthill no fue arbitrario, y ese es el punto que me interesa subrayar: describía correctamente el comportamiento observado de los sistemas de su época. Su error fue de extrapolación, no de observación, porque confundió una limitación material coyuntural, la capacidad de cómputo disponible en 1973, con una limitación esencial del enfoque. Veinticuatro años después Deep Blue derrotó a Kaspárov y refutó una de sus afirmaciones (Haenlein y Kaplan, 2019).
+
+\subsection{Sistemas expertos y segundo invierno (1980 a 1993)}
+
+Durante los años ochenta la IA encontró su primer modelo de negocio viable en los sistemas expertos, que Haenlein y Kaplan (2019) definen como colecciones de reglas que asumen que la inteligencia humana puede formalizarse y reconstruirse de arriba hacia abajo como una serie de sentencias si-entonces. Sistemas como MYCIN, para el diagnóstico de infecciones bacterianas, y XCON, para la configuración de sistemas VAX de DEC, demostraron rentabilidad real.
+
+Prolog, desarrollado en Marsella a inicios de los setenta, se convirtió en la alternativa europea y japonesa a LISP y fue adoptado como base del Proyecto de Quinta Generación de Computadoras japonés. Haenlein y Kaplan (2019) recuerdan que el gobierno japonés financió fuertemente la investigación en IA en esa década y que DARPA respondió con un incremento presupuestal equivalente, sin que ello produjera avances sustantivos.
+
+El segundo invierno llegó por tres causas que convergieron:
+
+\begin{enumerate}[leftmargin=1.6cm,itemsep=0.2em]
+  \item \textbf{Fragilidad de las bases de conocimiento.} Las reglas no generalizan fuera de su dominio y su mantenimiento crece de forma no lineal con el tamaño del sistema.
+  \item \textbf{Cuello de botella en la adquisición de conocimiento.} Extraer y formalizar el conocimiento de los expertos humanos resultó ser la parte más cara y lenta del ciclo de desarrollo.
+  \item \textbf{Colapso del hardware especializado.} Las máquinas LISP fueron desplazadas por estaciones de trabajo de propósito general con mejor relación costo-desempeño.
+\end{enumerate}
+
+Hay una observación conceptual de Haenlein y Kaplan (2019) que me parece indispensable: los sistemas expertos rinden muy bien en dominios que se prestan a la formalización, pero fracasan donde esta no es posible. No pueden entrenarse fácilmente para reconocer rostros ni para distinguir la fotografía de un \textit{muffin} de la de un chihuahua. Como carecen de la capacidad de interpretar datos externos, aprender de ellos y adaptarse con flexibilidad, técnicamente no constituyen verdadera IA.
+
+\subsection{El retorno estadístico (1986 a 2011)}
+
+Este periodo es largo y poco espectacular, pero a mi juicio produjo el trabajo más determinante de toda la historia del campo.
+
+\begin{itemize}[leftmargin=1.4cm,itemsep=0.25em]
+  \item \textbf{1986, retropropagación.} Rumelhart, Hinton y Williams popularizan el algoritmo que permite entrenar redes multicapa y resuelven en principio la limitación señalada por Minsky y Papert. A partir de aquí el obstáculo deja de ser matemático y pasa a ser exclusivamente computacional.
+  \item \textbf{1989 a 1998, redes convolucionales.} LeCun y colaboradores desarrollan LeNet-5, aplicada con éxito comercial al reconocimiento de dígitos manuscritos en cheques bancarios.
+  \item \textbf{1995, máquinas de vectores de soporte.} Cortes y Vapnik ofrecen un método con fundamento estadístico sólido que durante quince años superó a las redes neuronales en la mayoría de las tareas prácticas.
+  \item \textbf{1997, LSTM.} Hochreiter y Schmidhuber resuelven el problema del desvanecimiento del gradiente en redes recurrentes y hacen posible el modelado de dependencias de largo alcance (Zhang et al., 2023).
+  \item \textbf{1997, Deep Blue.} IBM derrota a Gary Kaspárov. Haenlein y Kaplan (2019) precisan que Deep Blue era un sistema experto capaz de procesar 200 millones de movimientos posibles por segundo y de anticipar veinte jugadas mediante búsqueda en árbol. Su victoria fue un triunfo de la fuerza bruta, no del aprendizaje.
+  \item \textbf{2006 a 2009, preentrenamiento profundo e ImageNet.} Hinton reintroduce el término \textit{deep learning} y Fei-Fei Li construye ImageNet, que hacia 2009 alcanza millones de imágenes etiquetadas.
+  \item \textbf{2007, CUDA.} NVIDIA libera la plataforma que convierte la GPU en un procesador paralelo de propósito general. En términos prácticos, este es el hito habilitador decisivo.
+  \item \textbf{2011, DanNet.} La red convolucional entrenada en GPU por Cireşan, en el laboratorio de Schmidhuber, gana cuatro competencias de reconocimiento de imágenes.
+\end{itemize}
+
+\subsection{La revolución del aprendizaje profundo (2012 a 2016)}
+
+En 2012 AlexNet, diseñada por Krizhevsky, Sutskever y Hinton, gana el \textit{ImageNet Large Scale Visual Recognition Challenge} con una tasa de error \textit{top}-5 de 15.3\% frente al 26.2\% del segundo lugar. La red, de ocho capas y unos 60 millones de parámetros, se entrenó sobre 1.2 millones de imágenes usando dos GPU NVIDIA GTX 580 de 3 GB cada una. Sus contribuciones técnicas, como la activación ReLU, el \textit{dropout}, el aumento de datos y la paralelización entre GPU, se volvieron estándar.
+
+Lo verdaderamente significativo de AlexNet no fue la novedad conceptual de sus componentes, que casi todos ya existían, sino la conjunción por primera vez de tres elementos: redes neuronales profundas, conjuntos de datos masivos y cómputo en GPU. Ninguno de los tres habría bastado por separado.
+
+En 2015 AlphaGo derrota al campeón mundial de Go. Haenlein y Kaplan (2019) dimensionan el salto: mientras que en la apertura del ajedrez hay 20 movimientos posibles, en Go hay 361, y durante mucho tiempo se creyó que una computadora jamás vencería a un humano en ese juego. AlphaGo lo consiguió combinando redes de política y de valor con búsqueda en árbol de Monte Carlo.
+
+\subsection{Transformers e IA generativa (2017 a 2026)}
+
+En 2017 el artículo ``Attention is All You Need'' introduce la arquitectura \textit{transformer}. Zhang et al.\ (2023) explican que su innovación está en el mecanismo de autoatención, que permite ponderar la relevancia de cada parte de una secuencia de entrada, sean palabras de una oración o píxeles de una imagen. Con eso captura dependencias de largo alcance y supera las limitaciones de las redes recurrentes y las LSTM, que sufrían problemas de desvanecimiento y explosión del gradiente. Al procesar en paralelo, los \textit{transformers} aprovechan a fondo el hardware masivamente paralelo.
+
+La cronología posterior es acelerada. Según Zhang et al.\ (2023), en 2018 aparecen GPT-1, con 117 millones de parámetros, y BERT; en 2019 GPT-2, con 1500 millones; en 2020 GPT-3, con 175 mil millones, capaz de traducir, redactar ensayos y generar código; y entre 2021 y 2022 ChatGPT establece un nuevo estándar de interacción natural, coherente y sensible al contexto. Los mismos autores identifican como factor determinante el crecimiento sostenido de la potencia de cómputo y la disponibilidad de conjuntos de datos a gran escala, y precisan que entrenar modelos de ese tamaño solo fue posible por los avances en tecnologías de GPU y TPU.
+
+Zenil (2021) aporta un marco teórico que ayuda a entender por qué estos modelos funcionan. Retomando la tesis de Chaitin de que la compresión es comprensión, argumenta que un modelo es mejor cuanto más puede explicar con menos, y que la práctica científica consiste en concebir un modelo que, a partir de ciertos valores iniciales, produzca un resultado en menos tiempo del que tarda el fenómeno real en desplegarse. Desde esa perspectiva, un modelo de lenguaje de gran escala es un compresor estadístico de las regularidades presentes en un corpus, y su aparente comprensión es la contraparte de su capacidad de compresión.
+
+Aquí regresa con toda su fuerza la objeción de Lovelace que analizan Natale y Henrickson (2024). El debate público actual sobre si los modelos generativos crean realmente reproduce casi literalmente la discusión del siglo XIX, con la diferencia de que hoy el efecto Lovelace, es decir la percepción de originalidad, se produce a escala masiva y de forma cotidiana.
+
+
+%=======================================================================
+\section{Línea de tiempo técnica: teoría, lenguajes y cómputo}
+%=======================================================================
+
+La Figura~\ref{fig:timeline} sintetiza los hitos principales y la Tabla~\ref{tab:cronologia} los correlaciona con los lenguajes de programación predominantes y con la limitación de cómputo característica de cada etapa. Esa correlación es, a mi juicio, la parte más útil del reporte, porque muestra que el lenguaje dominante en cada época no fue una elección estética sino la consecuencia directa del paradigma vigente y del hardware disponible.
+
+% La linea de tiempo la arme a mano en TikZ. Los años los coloque a
+% distancias iguales, no proporcionales, para que cupieran las etiquetas;
+% por eso lo aclaro en el pie de figura.
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=1.0cm,y=1.0cm,font=\scriptsize]
+  % Sombreado de los dos inviernos, va primero para que quede al fondo
+  \fill[black!10] (5.95,-0.34) rectangle (6.75,0.34);
+  \fill[black!10] (7.45,-0.34) rectangle (8.15,0.34);
+
+  \draw[line width=1pt,-{Latex[length=3mm]}] (0,0) -- (15.4,0);
+  \foreach \x/\y in {0.6/1936, 2.0/1950, 3.3/1956, 4.7/1969, 5.7/1973, 7.0/1986,
+                     8.6/1997, 10.0/2007, 11.3/2012, 12.7/2017, 14.2/2022}{
+    \draw[line width=0.8pt] (\x,-0.34) -- (\x,0.34);
+    \node[below=3pt,font=\scriptsize\bfseries] at (\x,-0.34) {\y};
+  }
+
+  % Hitos arriba del eje, en dos niveles para que no se encimen
+  \node[align=center,anchor=south,text width=2.1cm] at (0.6,0.45)  {Máquina de\\Turing (1936)};
+  \node[align=center,anchor=south,text width=2.1cm] at (3.3,1.75)  {Conferencia de\\Dartmouth; LISP};
+  \node[align=center,anchor=south,text width=2.1cm] at (5.7,0.45)  {Informe\\Lighthill};
+  \node[align=center,anchor=south,text width=2.1cm] at (8.6,1.75)  {Deep Blue\\LSTM};
+  \node[align=center,anchor=south,text width=2.1cm] at (11.3,0.45) {AlexNet\\(GPU)};
+  \node[align=center,anchor=south,text width=2.2cm] at (14.2,1.75) {ChatGPT;\\IA generativa};
+  \foreach \x in {3.3,8.6,14.2}{\draw[dotted,line width=0.6pt] (\x,0.36) -- (\x,1.70);}
+
+  % Hitos abajo del eje
+  \node[align=center,anchor=north,text width=2.1cm] at (2.0,-0.95)  {Test de\\Turing};
+  \node[align=center,anchor=north,text width=2.4cm] at (4.7,-2.30)  {\textit{Perceptrons}\\(Minsky y Papert)};
+  \node[align=center,anchor=north,text width=2.1cm] at (7.0,-0.95)  {Retropro-\\pagación};
+  \node[align=center,anchor=north,text width=2.1cm] at (10.0,-2.30) {CUDA;\\ImageNet};
+  \node[align=center,anchor=north,text width=2.3cm] at (12.7,-0.95) {\textit{Transformer};\\TF Lite Micro};
+  \foreach \x in {4.7,10.0}{\draw[dotted,line width=0.6pt] (\x,-0.80) -- (\x,-2.25);}
+
+  \fill[black!10] (0.6,-3.90) rectangle (1.05,-3.62);
+  \node[anchor=west,font=\scriptsize] at (1.15,-3.76)
+    {Inviernos de la IA (1974-1980 y 1987-1993)};
+\end{tikzpicture}
+\caption{Hitos fundamentales de la Inteligencia Artificial, 1936 a 2022. Los intervalos entre marcas no guardan proporción con el tiempo transcurrido. Elaboración propia con base en Buchanan (2005), Haenlein y Kaplan (2019) y Zhang et al.\ (2023).}
+\label{fig:timeline}
+\end{figure}
+
+\begin{longtable}{@{}L{1.9cm}L{4.5cm}L{3.3cm}L{4.0cm}@{}}
+\caption{Cronología técnica: hitos teóricos, lenguajes predominantes y limitación de cómputo}
+\label{tab:cronologia}\\
+\toprule
+\textbf{Periodo} & \textbf{Hito teórico o técnico} & \textbf{Lenguajes y plataformas} & \textbf{Limitación de cómputo dominante} \\
+\midrule
+\endfirsthead
+\multicolumn{4}{c}{\small\textit{Tabla \thetable{}, continuación}}\\
+\toprule
+\textbf{Periodo} & \textbf{Hito teórico o técnico} & \textbf{Lenguajes y plataformas} & \textbf{Limitación de cómputo dominante} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+
+1936-1949 & Máquina de Turing; neurona de McCulloch y Pitts; aprendizaje hebbiano & Sin lenguaje de alto nivel; cableado y código máquina & No existen computadoras de programa almacenado \\
+\addlinespace
+1950-1955 & Test de Turing; programa de damas de Samuel & Ensamblador (IBM 701 y 704) & Memoria de unos pocos kilobytes \\
+\addlinespace
+1956-1962 & Dartmouth; \textit{Logic Theorist}; perceptrón; heurísticas y \textit{satisficing} & IPL-II, LISP (1958), ALGOL & Del orden de $10^4$ operaciones por segundo \\
+\addlinespace
+1963-1972 & GPS; ELIZA; DENDRAL; SHRDLU; representación del conocimiento & LISP, ALGOL, POP-2 & Explosión combinatoria en la búsqueda \\
+\addlinespace
+1973-1980 & \textit{Perceptrons}; informe Lighthill; \textit{frames} de Minsky; MYCIN & LISP, Prolog (1972) & Imposibilidad de entrenar redes multicapa \\
+\addlinespace
+1981-1987 & Sistemas expertos comerciales (XCON); Quinta Generación; retropropagación (1986) & Common Lisp, Prolog, OPS5; máquinas LISP & Hardware simbólico dedicado y costoso \\
+\addlinespace
+1988-1995 & IA estadística; modelos ocultos de Markov; redes bayesianas; SVM (1995) & C, C++, MATLAB & Estaciones de trabajo secuenciales \\
+\addlinespace
+1996-2005 & Deep Blue (1997); LSTM (1997); LeNet-5 (1998); minería de datos & C/C++, Java, MATLAB, R & CPU sin paralelismo masivo \\
+\addlinespace
+2006-2011 & \textit{Deep learning}; ImageNet (2009); CUDA (2007); DanNet (2011) & C/C++ con CUDA; Python emergente & GPU aún no estandarizadas para IA \\
+\addlinespace
+2012-2016 & AlexNet (2012); \textit{word2vec}; GAN (2014); AlphaGo (2015-2016) & \textbf{Python} (Theano, Caffe, TensorFlow), Lua (Torch) & Costo energético del entrenamiento \\
+\addlinespace
+2017-2020 & \textit{Transformer} (2017); BERT y GPT (2018); GPT-3 (2020); TF Lite Micro (2019) & Python (PyTorch, TensorFlow); C++ embebido & Escala de parámetros y memoria de GPU \\
+\addlinespace
+2021-2026 & IA generativa masiva; modelos multimodales; TinyML industrial; Edge AI & Python; C/C++ (TFLite Micro, CMSIS-NN); Rust emergente & Consumo energético e inferencia en el borde \\
+
+\end{longtable}
+
+\subsection{Por qué cambió el lenguaje dominante}
+
+De la tabla anterior hay tres transiciones que vale la pena comentar.
+
+La primera es el paso del ensamblador a LISP, en 1958. La IA simbólica necesitaba manipular estructuras de datos de tamaño variable, listas anidadas y código tratado como dato, y LISP ofreció recursión, tipado dinámico, listas como estructura primitiva y recolección automática de basura. Buchanan (2005) recuerda que antes de la recolección de basura la administración de memoria era responsabilidad del programador, lo que consumía un esfuerzo desproporcionado.
+
+La segunda es el paso de LISP y Prolog a C y C++, a finales de los ochenta. Cuando el paradigma se movió de la manipulación simbólica al cálculo numérico intensivo, la prioridad dejó de ser la expresividad y se volvió la eficiencia. Los lenguajes que permitían control directo sobre memoria y aritmética de punto flotante desplazaron a los simbólicos.
+
+La tercera es el paso de C y C++ a Python, de 2012 en adelante. Python no es rápido, pero funciona como capa de orquestación sobre bibliotecas escritas en C, C++ y CUDA. Su ascenso ilustra un principio que me parece relevante: cuando el cuello de botella se traslada al hardware acelerador, el lenguaje del programador puede optimizarse para la productividad humana en lugar de para la velocidad de ejecución.
+
+
+%=======================================================================
+\section{Análisis de la transición hacia el \textit{Machine Learning} y el TinyML}
+%=======================================================================
+
+\subsection{Del conocimiento programado al conocimiento aprendido}
+
+La diferencia entre ambos paradigmas se puede formular con precisión. En un sistema basado en reglas, el ingeniero especifica explícitamente la función $f$ que transforma entradas en salidas:
+\[
+  y = f_{\text{reglas}}(x), \qquad f \text{ definida a priori por un experto humano.}
+\]
+En un sistema basado en datos, en cambio, el ingeniero especifica una familia paramétrica de funciones $f_\theta$ y un criterio de error, y delega en un procedimiento de optimización la búsqueda de los parámetros:
+\[
+  \theta^{*} = \arg\min_{\theta}\; \frac{1}{n}\sum_{i=1}^{n} \mathcal{L}\bigl(f_{\theta}(x_i),\, y_i\bigr) + \lambda\,\Omega(\theta).
+\]
+
+La Tabla~\ref{tab:paradigmas} contrasta los dos enfoques en las dimensiones que resultan críticas para un proyecto de ingeniería.
+
+\begin{table}[H]
+\centering
+\caption{Comparación entre el paradigma simbólico y el paradigma conexionista}
+\label{tab:paradigmas}
+\small
+\begin{tabular}{@{}L{3.3cm}L{5.2cm}L{5.2cm}@{}}
+\toprule
+\textbf{Dimensión} & \textbf{Sistemas basados en reglas} & \textbf{Sistemas basados en datos} \\
+\midrule
+Origen del conocimiento & Codificado por un experto humano & Inferido de ejemplos etiquetados \\
+Insumo crítico & Tiempo del experto & Volumen y calidad de los datos \\
+Interpretabilidad & Alta: la regla es legible y auditable & Baja: representación distribuida en millones de pesos \\
+Generalización & Nula fuera del dominio formalizado & Alta dentro de la distribución de entrenamiento \\
+Costo de mantenimiento & Crece de forma no lineal con las reglas & Reentrenamiento periódico del modelo \\
+Tolerancia al ruido & Muy baja & Alta \\
+Demanda de cómputo & Moderada, en inferencia & Muy alta en entrenamiento, moderada en inferencia \\
+Ejemplos históricos & MYCIN, XCON, Deep Blue & AlexNet, AlphaGo, GPT \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+El desplazamiento hacia el segundo paradigma se consolidó porque el costo relativo de los insumos se invirtió. Formalizar conocimiento experto siguió siendo caro y lento, mientras que los datos se volvieron abundantes con la expansión de la web y el cómputo se abarató de manera sostenida. Todavía a finales de los años dos mil las redes neuronales no superaban de forma consistente a otros algoritmos de aprendizaje automático, y necesitaron dos desarrollos que venían de fuera de la IA para abrirse paso: volúmenes de datos mucho mayores gracias a la web y potencia de cómputo suficiente en forma de hardware de GPU.
+
+\subsection{TinyML: el aprendizaje automático regresa a la restricción}
+
+El TinyML es el área que se ocupa de desplegar y ejecutar modelos de aprendizaje automático en sistemas embebidos de bajo consumo y recursos limitados, como microcontroladores y dispositivos de borde. Su objetivo, formulado por la comunidad que dio origen a la \textit{tinyML Foundation} en 2019, es llevar la inferencia a dispositivos de consumo ultrabajo, típicamente por debajo de un milivatio, y romper así la barrera energética que impedía distribuir ampliamente la inteligencia de máquina (Banbury et al., 2021).
+
+La restricción es severa. Mientras el entrenamiento de un modelo grande ocurre en centros de datos con decenas de gigabytes de memoria de alta velocidad, un microcontrolador típico dispone de cientos de kilobytes de SRAM y unos pocos megabytes de memoria \textit{flash}. Lin et al.\ (2023) señalan que el TinyML permite ejecutar aprendizaje automático empleando solo unos cuantos cientos de kilobytes, lo que reduce drásticamente el costo, y que con miles de millones de dispositivos del Internet de las Cosas generando datos existe una necesidad creciente de IA en el dispositivo, de bajo consumo y siempre activa. Al hacer la inferencia cerca del sensor se obtiene mejor capacidad de respuesta y mayor privacidad, además de reducirse el costo energético de la comunicación inalámbrica.
+
+Cuatro técnicas hacen viable esa compresión:
+
+\begin{enumerate}[leftmargin=1.6cm,itemsep=0.2em]
+  \item \textbf{Cuantización.} Reducción de la precisión numérica de los pesos, normalmente de punto flotante de 32 bits a enteros de 8 bits. Disminuye el tamaño del modelo en un factor cercano a cuatro y permite usar aritmética entera, mucho más eficiente en microcontroladores sin unidad de punto flotante.
+  \item \textbf{Podado.} Eliminación de las conexiones cuya contribución al resultado es despreciable, lo que genera redes dispersas.
+  \item \textbf{Destilación de conocimiento.} Entrenamiento de un modelo pequeño, llamado estudiante, para que reproduzca el comportamiento de uno grande, llamado maestro.
+  \item \textbf{Búsqueda de arquitecturas con restricciones de hardware.} Diseño automatizado de topologías que satisfacen desde el inicio los límites de memoria y latencia del dispositivo objetivo.
+\end{enumerate}
+
+El nexo con la idea central de este reporte es directo. Zenil (2021) sostiene que un modelo es mejor si explica más con menos, y que ahí está el núcleo del principio de Chaitin según el cual la compresión es comprensión. El TinyML lleva ese principio al plano de la ingeniería, porque obliga a determinar cuánta de la complejidad de un modelo es información necesaria y cuánta es redundancia. Que un modelo de detección de palabra clave pueda comprimirse hasta unas decenas de kilobytes y seguir funcionando indica que buena parte del tamaño de los modelos grandes es prescindible para tareas específicas.
+
+Conviene registrar también un cambio institucional reciente: a finales de 2024 la \textit{tinyML Foundation} se reorganizó como \textit{Edge AI Foundation}, lo que refleja la ampliación del ámbito desde los modelos extremadamente pequeños en microcontroladores hacia el conjunto de la inteligencia desplegada en el borde de la red.
+
+Hay una simetría histórica que me parece digna de señalar. La IA de los años sesenta fracasó porque el hardware no alcanzaba las ambiciones del software. El TinyML invierte deliberadamente ese planteamiento, porque parte del hardware disponible y adapta el software a sus límites. En cierto sentido es la lección de los inviernos de la IA convertida en método de diseño.
+
+
+%=======================================================================
+\section{Análisis crítico: el cómputo como habilitador}
+%=======================================================================
+
+\subsection{Planteamiento}
+
+La afirmación que sostengo en esta sección es que entre 1986 y 2012 el aprendizaje profundo no avanzó por falta de teoría sino por falta de cómputo. Las tres piezas conceptuales necesarias, que son las redes multicapa, la retropropagación y el descenso de gradiente estocástico, ya estaban publicadas y eran correctas. Lo que faltaba era la capacidad material de ejecutarlas a una escala útil.
+
+Esta lectura está respaldada por las fuentes analizadas. Haenlein y Kaplan (2019) atribuyen explícitamente el estancamiento de 1969 a que las computadoras no tenían suficiente potencia de procesamiento para manejar el trabajo que requerían las redes neuronales artificiales. Zhang et al.\ (2023) identifican como factor impulsor del auge de los \textit{transformers} el crecimiento constante de la potencia de cómputo y la disponibilidad de conjuntos de datos a gran escala, y precisan que entrenar modelos de ese tamaño fue posible gracias a los avances en GPU y TPU. Buchanan (2005), escribiendo desde una época anterior, ya observaba que los programas tempranos estaban necesariamente limitados en alcance por el tamaño y la velocidad de la memoria y los procesadores.
+
+\subsection{Evidencia cuantitativa}
+
+La Figura~\ref{fig:computo} muestra en escala logarítmica la evolución del desempeño máximo del hardware representativo de cada época. El crecimiento abarca alrededor de once órdenes de magnitud en unos setenta años.
+
+% Escala logaritmica porque en escala normal solo se veria una linea plana
+% y luego un salto vertical al final.
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+\begin{semilogyaxis}[
+    width=14cm, height=8cm,
+    xlabel={Año},
+    ylabel={Desempeño máximo aproximado (FLOPS)},
+    xmin=1950, xmax=2030,
+    ymin=1e3, ymax=1e17,
+    xtick={1950,1960,1970,1980,1990,2000,2010,2020,2030},
+    x tick label style={/pgf/number format/1000 sep={}},
+    grid=both,
+    grid style={line width=0.2pt,draw=gray!25},
+    major grid style={line width=0.3pt,draw=gray!45},
+    tick label style={font=\footnotesize},
+    label style={font=\small},
+    every axis plot/.append style={line width=1pt},
+    legend style={font=\footnotesize,at={(0.03,0.97)},anchor=north west,draw=gray!50},
+]
+\addplot[color=black,mark=*,mark size=1.8pt] coordinates {
+  (1956,1.2e4) (1965,1e6) (1976,1.6e8) (1985,1.9e9) (1997,1.1e10)
+  (2007,5.0e11) (2012,3.0e12) (2017,1.2e14) (2020,3.1e14) (2022,1.0e15)
+};
+\addlegendentry{Desempeño máximo del hardware}
+\node[font=\tiny,anchor=north west,text=black!70] at (axis cs:1957,7e3)   {IBM 704 (1956)};
+\node[font=\tiny,anchor=south east,text=black!70] at (axis cs:1984,4.5e9) {Cray-2};
+\node[font=\tiny,anchor=north west,text=black!70] at (axis cs:1997.8,7e9) {Deep Blue};
+\node[font=\tiny,anchor=north west,text=black!70] at (axis cs:2007.8,3e11){CUDA};
+\node[font=\tiny,anchor=south east,text=black!70] at (axis cs:2011.4,7e12){AlexNet};
+\node[font=\tiny,anchor=north east,align=right,text=black!70]
+     at (axis cs:2021.5,8e15) {GPU de centro\\de datos};
+\end{semilogyaxis}
+\end{tikzpicture}
+\caption{Crecimiento aproximado del desempeño máximo del hardware de cómputo, 1956 a 2022, en escala logarítmica. Los valores son estimaciones de orden de magnitud a partir de especificaciones publicadas de los sistemas representativos y se presentan con fines ilustrativos.}
+\label{fig:computo}
+\end{figure}
+
+Para dimensionar lo que esa curva significa hice un ejercicio de estimación. AlexNet requirió alrededor de seis días de entrenamiento sobre dos GPU GTX 580, cada una con capacidad del orden de $1.5\times10^{12}$ operaciones de punto flotante por segundo. Si se intentara reproducir ese mismo entrenamiento sobre una IBM 704 de 1956, con capacidad aproximada de $1.2\times10^{4}$ FLOPS, el factor de diferencia sería del orden de $2.5\times10^{8}$. Seis días se convertirían en cerca de cuatro millones de años. El experimento no era difícil en 1956, era físicamente imposible.
+
+\subsection{Las tres condiciones que debieron cumplirse}
+
+Identifico tres condiciones necesarias, ninguna suficiente por sí sola.
+
+\subsubsection{Paralelismo masivo asequible}
+
+La operación dominante en una red neuronal es la multiplicación de matrices, que es intrínsecamente paralelizable. Una CPU de los años noventa ejecutaba unas pocas operaciones simultáneas; una GPU moderna ejecuta miles. El punto de inflexión no fue la invención de la GPU sino la publicación de CUDA en 2007, que la convirtió en un dispositivo programable de propósito general. Antes de CUDA, aprovechar una GPU para cómputo científico exigía expresar el problema como una operación gráfica, lo que resultaba prohibitivo para la mayoría de los investigadores.
+
+\subsubsection{Datos etiquetados a escala}
+
+Una red profunda tiene una capacidad de representación muy alta y por lo tanto requiere volúmenes de datos proporcionales para no sobreajustar. ImageNet, iniciado por Fei-Fei Li en 2006 en contra de la opinión predominante de la época, proporcionó ese insumo. Sin ImageNet, AlexNet habría memorizado su conjunto de entrenamiento en lugar de aprender representaciones generalizables.
+
+\subsubsection{Ecosistema de software accesible}
+
+En 1986, implementar una red neuronal implicaba programar manualmente el cálculo de gradientes. Con la diferenciación automática de marcos como Theano, TensorFlow y PyTorch, esa tarea se redujo a declarar la arquitectura. Este factor rara vez aparece en las cronologías, pero es el que multiplicó el número de personas capaces de experimentar y, con ello, la velocidad a la que el campo descubrió cosas.
+
+\subsection{Contraargumento}
+
+Sería una simplificación excesiva afirmar que el cómputo lo explica todo. Hubo aportaciones algorítmicas genuinamente indispensables: la función de activación ReLU, que mitigó el desvanecimiento del gradiente y aceleró el entrenamiento; el \textit{dropout} como regularizador; la normalización por lotes; y sobre todo el mecanismo de atención, que no es una simple optimización sino un cambio arquitectónico. Zhang et al.\ (2023) subrayan que los \textit{transformers} superaron limitaciones que las RNN y las LSTM no podían resolver ni siquiera con hardware ilimitado, porque el problema del desvanecimiento del gradiente en secuencias largas es estructural y no de escala.
+
+La formulación correcta, entonces, es que el cómputo fue condición necesaria pero no suficiente. Su disponibilidad no generó los algoritmos, pero sí permitió descubrirlos, porque redujo el ciclo experimental de meses a horas. Una comunidad científica que puede correr mil experimentos al mes avanza cualitativamente más rápido que una que puede correr uno. En ese sentido, la capacidad de cómputo actuó menos como el motor del avance y más como la condición que hizo posible la investigación empírica en el campo.
+
+Si ese patrón se sostiene, es razonable suponer que en la literatura actual ya existen ideas correctas cuya implementación hoy es inviable y que se volverán prácticas en la próxima década. El TinyML, la computación neuromórfica y el aprendizaje continuo en el dispositivo me parecen los candidatos más plausibles.
+
+
+%=======================================================================
+\section{Conclusiones personales}
+%=======================================================================
+
+Al terminar este trabajo identifico cinco aprendizajes que considero relevantes para mi formación.
+
+El primero es que la viabilidad importa tanto como la corrección. Un algoritmo correcto pero inejecutable no produce valor, y la retropropagación fue correcta durante veintiséis años antes de volverse útil. Eso se traduce directamente en mi práctica: al diseñar cualquier sistema, la evaluación de los recursos disponibles tiene que ocurrir en paralelo con el diseño conceptual y no después. En los proyectos que he desarrollado, esto significa verificar desde el inicio si la infraestructura objetivo soporta la solución propuesta.
+
+El segundo es que los inviernos de la IA fueron crisis de expectativas, no de conocimiento. La investigación no se detuvo porque se descubriera que estaba equivocada, sino porque prometió resultados en plazos irreales y perdió credibilidad ante quienes la financiaban. La declaración de Minsky en 1970 y el informe Lighthill de 1973 forman una secuencia bastante instructiva. Como profesional, eso me obliga a comprometer plazos y alcances verificables, sobre todo en un momento en que el discurso sobre la IA vuelve a estar saturado de promesas.
+
+El tercero es que la interpretabilidad es el costo real del paradigma actual. La transición hacia sistemas basados en datos entregó capacidades que las reglas nunca alcanzaron, pero sacrificó la auditabilidad. Un sistema experto podía explicar su decisión enumerando las reglas que se activaron; una red profunda no puede. En dominios regulados como salud, crédito o justicia, esa pérdida no es un inconveniente menor sino un obstáculo serio. Por eso considero que la investigación en IA explicable no es un complemento opcional, sino la deuda técnica pendiente de esta etapa.
+
+El cuarto es que el debate sobre la creatividad artificial no es nuevo y probablemente no se resolverá de manera empírica. Natale y Henrickson (2024) muestran que la objeción de Lovelace y su contraparte describen un fenómeno de percepción tanto como uno de ingeniería. Miłkowski (2022) y Grosz (2012) coinciden, desde ángulos distintos, en que el test de Turing fue concebido como escalón hacia una comprensión teórica y no como criterio definitivo. Lo que concluyo de ahí es que las preguntas sobre si una máquina realmente entiende son menos productivas, para quien va a construir sistemas, que las preguntas sobre qué hace el sistema, con qué confiabilidad y bajo qué condiciones falla.
+
+El quinto es que el TinyML representa el regreso de la restricción como virtud de diseño. Después de una década en la que el progreso se midió en número de parámetros, el desplazamiento hacia la inferencia en el borde reintroduce la eficiencia como criterio central. Esto me resulta especialmente pertinente porque conecta con problemas reales: sistemas de sensado, monitoreo y automatización que deben operar con conectividad intermitente y presupuesto energético limitado, condiciones que son habituales fuera de las grandes ciudades. La idea de Zenil (2021) de que comprimir es comprender adquiere aquí un sentido operativo, porque un modelo que sobrevive a la cuantización y al podado demuestra que su desempeño no dependía del exceso.
+
+Quiero cerrar con una observación sobre el ejercicio mismo. Leer los ocho artículos en orden cronológico de publicación, y no en el orden de los hechos que narran, resultó revelador. Buchanan escribe en 2005 sin mencionar el aprendizaje profundo, simplemente porque todavía no ocurría. Grosz escribe en 2012 preguntándose qué prueba propondría Turing hoy, el mismo año en que AlexNet estaba cambiando el campo. Zhang y sus colaboradores escriben en 2023 con ChatGPT ya disponible. Cada texto está condicionado por su presente, y esa es quizá la advertencia metodológica más útil que me llevo: cualquier evaluación del estado actual de la IA que yo escriba hoy va a quedar igualmente fechada, y conviene escribirla con esa conciencia.
+
+
+%=======================================================================
+\section{Referencias}
+%=======================================================================
+
+% Orden alfabetico y sangria francesa, como pide APA 7.
+\begin{referencias}
+
+\item Abramson, D. (2011). Descartes' influence on Turing. \textit{Studies in History and Philosophy of Science Part A}, \textit{42}(4), 544-551. \url{https://doi.org/10.1016/j.shpsa.2011.09.004}
+
+\item Anthropic. (2026). \textit{Claude} (versión Opus 5) [Modelo de lenguaje de gran escala]. \url{https://claude.ai}
+
+\item Banbury, C. R., Reddi, V. J., Lam, M., Fu, W., Fazel, A., Holleman, J., Huang, X., Hurtado, R., Kanter, D., Lokhmotov, A., Patterson, D., Pau, D., Seo, J., Sieracki, J., Thakker, U., Verhelst, M., y Yadav, P. (2021). \textit{Benchmarking TinyML systems: Challenges and direction} (arXiv:2003.04821). arXiv. \url{https://arxiv.org/abs/2003.04821}
+
+\item Buchanan, B. G. (2005). A (very) brief history of artificial intelligence. \textit{AI Magazine}, \textit{26}(4), 53-60. \url{https://doi.org/10.1609/aimag.v26i4.1848}
+
+\item Colmerauer, A., y Roussel, P. (1996). The birth of Prolog. En T. J. Bergin y R. G. Gibson (Eds.), \textit{History of programming languages II} (pp. 331-367). ACM Press.
+
+\item Cortes, C., y Vapnik, V. (1995). Support-vector networks. \textit{Machine Learning}, \textit{20}(3), 273-297. \url{https://doi.org/10.1007/BF00994018}
+
+\item Deng, J., Dong, W., Socher, R., Li, L.-J., Li, K., y Fei-Fei, L. (2009). ImageNet: A large-scale hierarchical image database. \textit{2009 IEEE Conference on Computer Vision and Pattern Recognition}, 248-255. \url{https://doi.org/10.1109/CVPR.2009.5206848}
+
+\item Devlin, J., Chang, M.-W., Lee, K., y Toutanova, K. (2019). BERT: Pre-training of deep bidirectional transformers for language understanding. \textit{Proceedings of NAACL-HLT 2019}, 4171-4186.
+
+\item Grosz, B. J. (2012). What question would Turing pose today? \textit{AI Magazine}, \textit{33}(4), 73-81. \url{https://doi.org/10.1609/aimag.v33i4.2441}
+
+\item Haenlein, M., y Kaplan, A. (2019). A brief history of artificial intelligence: On the past, present, and future of artificial intelligence. \textit{California Management Review}, \textit{61}(4), 5-14. \url{https://doi.org/10.1177/0008125619864925}
+
+\item Hebb, D. O. (1949). \textit{The organization of behavior: A neuropsychological theory}. Wiley.
+
+\item Hochreiter, S., y Schmidhuber, J. (1997). Long short-term memory. \textit{Neural Computation}, \textit{9}(8), 1735-1780. \url{https://doi.org/10.1162/neco.1997.9.8.1735}
+
+\item Krizhevsky, A., Sutskever, I., y Hinton, G. E. (2012). ImageNet classification with deep convolutional neural networks. \textit{Advances in Neural Information Processing Systems}, \textit{25}, 1097-1105.
+
+\item LeCun, Y., Bottou, L., Bengio, Y., y Haffner, P. (1998). Gradient-based learning applied to document recognition. \textit{Proceedings of the IEEE}, \textit{86}(11), 2278-2324. \url{https://doi.org/10.1109/5.726791}
+
+\item Lighthill, J. (1973). Artificial intelligence: A general survey. En \textit{Artificial intelligence: A paper symposium}. Science Research Council.
+
+\item Lin, J., Zhu, L., Chen, W.-M., Wang, W.-C., y Han, S. (2023). Tiny machine learning: Progress and futures. \textit{IEEE Circuits and Systems Magazine}, \textit{23}(3), 8-34. \url{https://doi.org/10.1109/MCAS.2023.3302182}
+
+\item McCarthy, J. (1960). Recursive functions of symbolic expressions and their computation by machine, Part I. \textit{Communications of the ACM}, \textit{3}(4), 184-195. \url{https://doi.org/10.1145/367177.367199}
+
+\item McCulloch, W. S., y Pitts, W. (1943). A logical calculus of the ideas immanent in nervous activity. \textit{The Bulletin of Mathematical Biophysics}, \textit{5}(4), 115-133. \url{https://doi.org/10.1007/BF02478259}
+
+\item Miłkowski, M. (2022). Turing's conceptual engineering. \textit{Philosophies}, \textit{7}(3), 69. \url{https://doi.org/10.3390/philosophies7030069}
+
+\item Minsky, M., y Papert, S. (1969). \textit{Perceptrons: An introduction to computational geometry}. MIT Press.
+
+\item Natale, S., y Henrickson, L. (2024). The Lovelace effect: Perceptions of creativity in machines. \textit{New Media \& Society}, \textit{26}(4), 1909-1926. \url{https://doi.org/10.1177/14614448221077278}
+
+\item Ray, P. P. (2022). A review on TinyML: State-of-the-art and prospects. \textit{Journal of King Saud University - Computer and Information Sciences}, \textit{34}(4), 1595-1623. \url{https://doi.org/10.1016/j.jksuci.2021.11.019}
+
+\item Rosenblatt, F. (1958). The perceptron: A probabilistic model for information storage and organization in the brain. \textit{Psychological Review}, \textit{65}(6), 386-408. \url{https://doi.org/10.1037/h0042519}
+
+\item Rumelhart, D. E., Hinton, G. E., y Williams, R. J. (1986). Learning representations by back-propagating errors. \textit{Nature}, \textit{323}(6088), 533-536. \url{https://doi.org/10.1038/323533a0}
+
+\item Samuel, A. L. (1959). Some studies in machine learning using the game of checkers. \textit{IBM Journal of Research and Development}, \textit{3}(3), 210-229. \url{https://doi.org/10.1147/rd.33.0210}
+
+\item Silver, D., Huang, A., Maddison, C. J., Guez, A., Sifre, L., van den Driessche, G., Schrittwieser, J., Antonoglou, I., Panneershelvam, V., Lanctot, M., Dieleman, S., Grewe, D., Nham, J., Kalchbrenner, N., Sutskever, I., Lillicrap, T., Leach, M., Kavukcuoglu, K., Graepel, T., y Hassabis, D. (2016). Mastering the game of Go with deep neural networks and tree search. \textit{Nature}, \textit{529}(7587), 484-489. \url{https://doi.org/10.1038/nature16961}
+
+\item Turing, A. M. (1950). Computing machinery and intelligence. \textit{Mind}, \textit{59}(236), 433-460. \url{https://doi.org/10.1093/mind/LIX.236.433}
+
+\item Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., Kaiser, Ł., y Polosukhin, I. (2017). Attention is all you need. \textit{Advances in Neural Information Processing Systems}, \textit{30}, 5998-6008.
+
+\item Warden, P., y Situnayake, D. (2019). \textit{TinyML: Machine learning with TensorFlow Lite on Arduino and ultra-low-power microcontrollers}. O'Reilly Media.
+
+\item Zenil, H. (2021). \textit{Compression is comprehension: The unreasonable effectiveness of digital computation in the natural world} (arXiv:1904.10258v3). arXiv. \url{https://arxiv.org/abs/1904.10258}
+
+\item Zhang, E. Y., Cheok, A. D., Pan, Z., Cai, J., y Yan, Y. (2023). From Turing to transformers: A comprehensive review and tutorial on the evolution and applications of generative transformer models. \textit{Sci}, \textit{5}(4), 46. \url{https://doi.org/10.3390/sci5040046}
+
+\end{referencias}
+
+\end{document}
