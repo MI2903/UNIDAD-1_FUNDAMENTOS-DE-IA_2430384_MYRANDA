@@ -1,0 +1,26 @@
+[project]
+name = "noticias_andes_1972"
+version = "0.1.0"
+description = "noticias_andes_1972 using crewAI"
+authors = [{ name = "Your Name", email = "you@example.com" }]
+requires-python = ">=3.10,<3.14"
+dependencies = [
+    "crewai-tools>=1.15.22",
+    "crewai[google-genai,tools]>=1.15.22,<2.0.0",
+]
+
+[project.scripts]
+noticias_andes_1972 = "noticias_andes_1972.main:run"
+run_crew = "noticias_andes_1972.main:run"
+train = "noticias_andes_1972.main:train"
+replay = "noticias_andes_1972.main:replay"
+test = "noticias_andes_1972.main:test"
+run_with_trigger = "noticias_andes_1972.main:run_with_trigger"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.crewai]
+type = "crew"
+project_id = "2f50fbad-a295-4558-85a1-ae2c050034d5"

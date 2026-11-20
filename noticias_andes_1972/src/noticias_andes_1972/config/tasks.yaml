@@ -1,0 +1,48 @@
+tarea_investigacion:
+  description: >
+    Investiga en internet sobre {topic}. Haz varias busquedas para reunir:
+    1) los hechos principales del accidente (fecha, ruta, numero de personas
+    a bordo y causas), 2) la supervivencia en la montana y el rescate (fechas,
+    numero de sobrevivientes y protagonistas clave), y 3) el legado y la
+    actualidad del tema hasta {current_year} (libros, peliculas, homenajes y
+    noticias recientes). Anota la URL de cada fuente consultada.
+  expected_output: >
+    Un informe de investigacion con al menos 10 datos verificados, organizados
+    en tres secciones: el accidente, la supervivencia y el rescate, y el
+    legado y la actualidad. Cada dato indica su fuente con URL.
+  agent: investigador_historico
+
+tarea_redaccion:
+  description: >
+    Con base unicamente en la investigacion, escribe tres noticias sobre
+    {topic}: 1) una nota principal sobre el accidente, 2) una nota sobre la
+    supervivencia y el rescate, y 3) una nota sobre el legado y la actualidad
+    del tema en {current_year}. Cada noticia debe tener titular, subtitulo,
+    entrada y un desarrollo de 250 a 400 palabras, y al final las fuentes
+    utilizadas. No inventes citas textuales ni datos que no esten en la
+    investigacion. Escribe en espanol con acentos y ortografia correcta.
+  expected_output: >
+    Tres noticias completas en formato markdown, cada una con titular,
+    subtitulo, entrada, desarrollo y lista de fuentes con URL.
+  agent: redactor_noticias
+  context:
+    - tarea_investigacion
+
+tarea_publicacion:
+  description: >
+    Revisa las tres noticias y comparalas con la investigacion. Corrige
+    cualquier dato que no coincida y mejora la redaccion si hace falta.
+    Despues genera una pagina web completa en HTML para publicar las
+    noticias, con: un encabezado con el titulo "Especial: La tragedia de los
+    Andes de 1972", las tres noticias con sus titulares, las fuentes como
+    enlaces, y un pie de pagina que diga "Noticias generadas con agentes de
+    IA (CrewAI) con fines academicos - {current_year}". Incluye el CSS dentro
+    de la misma pagina con la etiqueta style, con diseno de periodico digital,
+    legible en computadora y en celular. Usa acentos y ortografia correcta.
+  expected_output: >
+    Un documento HTML completo que empiece con <!DOCTYPE html> y termine con
+    </html>, sin bloques de codigo markdown ni texto antes o despues del HTML.
+  agent: editor_publicador
+  context:
+    - tarea_investigacion
+    - tarea_redaccion
